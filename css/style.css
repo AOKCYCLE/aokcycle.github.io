@@ -811,6 +811,24 @@ html:not(.js) .chapter__pin { position: relative; height: auto; display: flex; f
 @keyframes logoFill { to { fill-opacity: .16; } }
 @keyframes logoText { to { opacity: 1; } }
 
+/* ---------- Brand links ---------- */
+.premium li.bl, .chips li.bl { padding: 0; }
+.bl__link { display: grid; place-items: center; width: 100%; height: 100%; color: inherit; }
+.premium .bl__link { padding: 1rem .6rem; min-height: inherit; }
+.chips .bl__link { display: block; padding: .6rem 1.05rem; }
+.premium li.bl:not(:has(.bl__link)), .chips li.bl:not(:has(.bl__link)) { padding: .6rem 1.05rem; }
+.bl__go { position: absolute; top: .45rem; right: .6rem; font-style: normal; font-size: .8rem; line-height: 1; opacity: 0; transform: translate(-4px, 4px); transition: opacity .3s, transform .5s var(--ease); pointer-events: none; }
+.chips .bl__go { top: .2rem; right: .35rem; font-size: .62rem; }
+.bl.is-logo .bl__go { opacity: 1; transform: none; }
+.bl__link:focus-visible { outline: 1px solid currentColor; outline-offset: -6px; }
+
+/* ---------- Footer legal notice ---------- */
+.footer__legal { max-width: 46rem; margin-top: 2.4rem; display: flex; flex-direction: column; align-items: center; gap: .9rem; }
+.footer__legal .footer__copy { margin: 0; color: var(--ink-2); font-weight: 500; letter-spacing: .04em; }
+.footer__legal p:not(.footer__copy) { font-size: .76rem; line-height: 1.65; color: var(--dim); }
+.footer__legal .text-link { font-size: .66rem; color: var(--ink-2); }
+.me__shot img, .portrait__photo, .contact__me img { -webkit-user-drag: none; user-select: none; -webkit-touch-callout: none; }
+
 /* =========================================================
    Reduced motion
    ========================================================= */

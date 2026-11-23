@@ -424,8 +424,10 @@ window.Effects = (function () {
     var track = $('.marquee__track');
     if (!track || reduce || !G) return;
     track.style.animation = 'none';
-    var x = 0, skew = G.quickSetter(track, 'skewX', 'deg'), set = G.quickSetter(track, 'x', 'px');
+    var x = 0, skew = G.quickSetter(track, 'skewX', 'deg'), set = G.quickSetter(track, 'x', 'px'), seen = true;
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (en) { seen = en[0].isIntersecting; }).observe(track);
     G.ticker.add(function () {
+      if (!seen) return;
       var v = window.__lenis ? window.__lenis.velocity : 0, dir = v < -0.1 ? -1 : 1;
       x += -0.6 * dir - Math.abs(v) * 0.45 * dir;
       var half = track.scrollWidth / 2;
@@ -455,7 +457,7 @@ window.Effects = (function () {
 
   /* ---------- Brand names turn into line-drawn logos on hover / tap ---------- */
   function brandLogos() {
-    var L = window.BRAND_LOGOS || {};
+    var L = window.BRAND_LOGOS || {}, S = window.BRAND_SITES || {}, all = [];
     $$('.premium li, .chips li').forEach(function (li) {
       var name = li.textContent.trim(), d = L[name], art;
       if (d) {
@@ -464,9 +466,12 @@ window.Effects = (function () {
         var ini = name.replace(/[^A-Za-z0-9 .-]/g, '').split(/[\s.-]+/).filter(Boolean).map(function (w) { return w[0]; }).join('').slice(0, 2).toUpperCase();
         art = '<svg class="bl__logo bl__logo--mono" viewBox="0 0 24 24" aria-hidden="true"><circle pathLength="1" cx="12" cy="12" r="10.6"/><circle pathLength="1" cx="12" cy="12" r="8.6"/><text x="12" y="15.3" text-anchor="middle">' + ini + '</text></svg>';
       }
-      li.innerHTML = '<span class="bl__name">' + li.innerHTML + '</span>' + art;
+      var url = S[name];
+      var inner = '<span class="bl__name">' + li.innerHTML + '</span>' + art + (url ? '<i class="bl__go" aria-hidden="true">\u2197</i>' : '');
+      li.innerHTML = url ? '<a class="bl__link" href="' + url + '" target="_blank" rel="noopener" aria-label="' + name + ' official website">' + inner + '</a>' : inner;
       li.classList.add('bl');
-      li.setAttribute('title', name);
+      li.setAttribute('title', url ? name + ' \u2014 official website' : name);
+      all.push(li);
       var svg = li.querySelector('.bl__logo'), fitted = false;
       function fit() {
         // crop the viewBox tight around the logo so wide wordmarks fill the tile, then keep strokes ~1px
@@ -481,7 +486,16 @@ window.Effects = (function () {
       function on() { fit(); li.classList.add('is-logo'); if (window.Sound) Sound.tick(); }
       function off() { li.classList.remove('is-logo'); }
       if (fine) { li.addEventListener('pointerenter', on); li.addEventListener('pointerleave', off); }
-      else li.addEventListener('click', function () { li.classList.contains('is-logo') ? off() : on(); });
+      else {
+        // touch: first tap draws the logo, second tap opens the official website
+        li.addEventListener('click', function (e) {
+          if (!li.classList.contains('is-logo')) {
+            e.preventDefault();
+            all.forEach(function (o) { if (o !== li) o.classList.remove('is-logo'); });
+            on();
+          }
+        });
+      }
     });
   }
 

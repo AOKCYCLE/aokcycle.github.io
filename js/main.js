@@ -46,6 +46,11 @@
     });
   });
   var yearEl = $('#year'); if (yearEl) yearEl.textContent = new Date().getFullYear();
+  // light deterrent: personal photos can't be dragged out or right-click saved
+  $$('.me__shot img, .portrait__photo, .contact__me img').forEach(function (im) {
+    im.setAttribute('draggable', 'false');
+    im.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+  });
 
   /* ---------- Toast & copy ---------- */
   var toastEl = $('.toast'), toastT;
@@ -219,7 +224,7 @@
 
   /* ---------- Lenis smooth scroll ---------- */
   if (!reduce && window.Lenis) {
-    lenis = new Lenis({ lerp: 0.08, smoothWheel: true });
+    lenis = new Lenis({ lerp: 0.1, smoothWheel: true, wheelMultiplier: 1.05 });
     window.__lenis = lenis;
     lenis.on('scroll', ScrollTrigger.update);
     gsap.ticker.add(function (time) { lenis.raf(time * 1000); });
@@ -452,7 +457,7 @@
     cursor.classList.add('is-hidden');
     window.addEventListener('pointermove', function (e) { cx(e.clientX); cy(e.clientY); cursor.classList.remove('is-hidden'); }, { passive: true });
     document.addEventListener('pointerleave', function () { cursor.classList.add('is-hidden'); });
-    var LABELS = [['.flow__item', 'Open'], ['.case', 'Reveal'], ['.trail', 'Move'], ['.bcard', 'Tap'], ['.feature', 'Play'], ['.short', 'Play'], ['.me__shot', 'View']];
+    var LABELS = [['.flow__item', 'Open'], ['.case', 'Reveal'], ['.trail', 'Move'], ['.bcard', 'Tap'], ['.feature', 'Play'], ['.short', 'Play'], ['.me__shot', 'View'], ['.bl', 'Visit']];
     document.addEventListener('pointerover', function (e) {
       var text = '';
       for (var i = 0; i < LABELS.length; i++) { if (e.target.closest(LABELS[i][0])) { text = LABELS[i][1]; break; } }
