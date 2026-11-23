@@ -11,8 +11,8 @@ window.SITE_CONFIG = {
 
   social: {
     linkedin:  "https://www.linkedin.com/in/ahmedabdelaatyy/",
-    youtube:   "", // @kosharicode not found on YouTube (Nov 2026); paste the channel link here once it exists
-    tiktok:    "https://www.tiktok.com/@kosharicode",
+    youtube:   "https://www.youtube.com/@AhmedOsamaKarm",
+    tiktok:    "https://www.tiktok.com/@ahmedosamakarmallah",
     instagram: "https://www.instagram.com/kosharicode/",
     x:         "", // e.g. "https://x.com/yourhandle"
     facebook:  ""  // e.g. "https://www.facebook.com/yourpage"
