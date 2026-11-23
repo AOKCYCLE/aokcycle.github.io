@@ -16,6 +16,12 @@ window.SITE_CONFIG = {
   // Fallback used while the key above is empty (FormSubmit.co, needs its activation link).
   formEndpoint: "https://formsubmit.co/ajax/ahmedosamakarmallah7@gmail.com",
 
+  // Privacy-friendly visitor analytics (no cookies). Fill ONE of these to switch it on:
+  //   plausible:   your domain as added in Plausible, e.g. "aokcycle.github.io"
+  //   cloudflare:  the token from Cloudflare Web Analytics
+  //   goatcounter: your GoatCounter code, e.g. "ahmedosama"
+  analytics: { plausible: "", cloudflare: "", goatcounter: "" },
+
   social: {
     linkedin:  "https://www.linkedin.com/in/ahmedabdelaatyy/",
     youtube:   "https://www.youtube.com/@AhmedOsamaKarm",

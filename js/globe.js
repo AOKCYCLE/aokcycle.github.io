@@ -47,6 +47,7 @@ window.initGlobe = function (canvas, opts) {
 
   var W = 0, H = 0, R = 0, cx = 0, cy = 0, dpr = 1;
   var angle = -55 * Math.PI / 180, tilt = 0.42; // tilt so ~25°N (Gulf) faces the viewer
+  var spin = null, hl = null, holdUntil = 0; // focus: turn a market to the front and hold it
   function resize() {
     dpr = Math.min(window.devicePixelRatio || 1, 2);
     W = canvas.clientWidth; H = canvas.clientHeight;
@@ -121,6 +122,10 @@ window.initGlobe = function (canvas, opts) {
       ctx.beginPath(); ctx.arc(p[0], p[1], 4 + pulse * 14, 0, Math.PI * 2);
       ctx.strokeStyle = 'rgba(236,230,216,' + ((1 - pulse) * 0.6 * p[2]).toFixed(3) + ')';
       ctx.lineWidth = 1; ctx.stroke();
+      if (hl === m.name) {
+        ctx.beginPath(); ctx.arc(p[0], p[1], 11, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(255,250,238,.9)'; ctx.lineWidth = 1.4; ctx.stroke();
+      }
       ctx.beginPath(); ctx.arc(p[0], p[1], m.hub ? 5 : 3.5, 0, Math.PI * 2);
       ctx.fillStyle = m.hub ? '#fffaf0' : '#ece6d8'; ctx.fill();
       ctx.fillStyle = 'rgba(244,239,230,' + (0.35 + p[2] * 0.65).toFixed(3) + ')';
@@ -132,7 +137,11 @@ window.initGlobe = function (canvas, opts) {
   var running = false, inView = false, raf = 0, last = performance.now();
   function loop(time) {
     var dt = Math.min(0.05, (time - last) / 1000); last = time;
-    angle += dt * 0.16;
+    if (spin) {
+      var k = Math.min(1, (time - spin.start) / 1300), e = 1 - Math.pow(1 - k, 3);
+      angle = spin.from + (spin.to - spin.from) * e;
+      if (k >= 1) spin = null;
+    } else if (time > holdUntil) angle += dt * 0.16;
     frame(time);
     if (running) raf = requestAnimationFrame(loop);
   }
@@ -142,9 +151,17 @@ window.initGlobe = function (canvas, opts) {
   window.addEventListener('resize', function () { resize(); if (!running) frame(performance.now()); });
   resize();
   frame(performance.now());
-  if (opts.static) return {};
+  function focus(name) {
+    var m = markets.filter(function (x) { return x.name === name; })[0]; if (!m) return;
+    var to = Math.atan2(-m.v[0], m.v[2]), d = to - angle;
+    d = Math.atan2(Math.sin(d), Math.cos(d)); // shortest way round
+    hl = name; holdUntil = performance.now() + 5200;
+    if (opts.static || !running) { angle += d; frame(performance.now()); return; }
+    spin = { from: angle, to: angle + d, start: performance.now() };
+  }
+  if (opts.static) return { focus: focus };
 
   new IntersectionObserver(function (e) { inView = e[0].isIntersecting; inView ? play() : pause(); }).observe(canvas);
   document.addEventListener('visibilitychange', function () { document.hidden ? pause() : play(); });
-  return { play: play, pause: pause };
+  return { play: play, pause: pause, focus: focus };
 };

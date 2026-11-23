@@ -39,3 +39,5 @@ Disallow: /
 
 User-agent: img2dataset
 Disallow: /
+
+Sitemap: https://aokcycle.github.io/sitemap.xml

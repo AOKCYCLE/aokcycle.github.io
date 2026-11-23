@@ -17,10 +17,7 @@
   };
 
   /* ---------- Contact details & social links ---------- */
-  var ICONS = {
-    linkedin: 'fa-brands fa-linkedin-in', youtube: 'fa-brands fa-youtube', tiktok: 'fa-brands fa-tiktok',
-    instagram: 'fa-brands fa-instagram', kosharicode: 'fa-solid fa-robot', facebook: 'fa-brands fa-facebook-f', whatsapp: 'fa-brands fa-whatsapp'
-  };
+  var ICONS = { linkedin: 'li', youtube: 'yt', tiktok: 'tt', instagram: 'ig', kosharicode: 'robot', facebook: 'fb', whatsapp: 'wa' };
   var social = Object.assign({}, CFG.social || {});
   if (CFG.whatsapp) social.whatsapp = 'https://wa.me/' + CFG.whatsapp;
   $$('[data-email]').forEach(function (a) { if (CFG.email) { a.href = 'mailto:' + CFG.email; a.textContent = CFG.email; } });
@@ -41,7 +38,7 @@
       var a = document.createElement('a');
       a.href = social[k]; a.target = '_blank'; a.rel = 'noopener';
       a.setAttribute('aria-label', k === 'kosharicode' ? 'KoshariCode, my AI agent' : k.charAt(0).toUpperCase() + k.slice(1));
-      a.innerHTML = '<i class="' + ICONS[k] + '"></i>';
+      a.innerHTML = '<svg class="ic" aria-hidden="true"><use href="#i-' + ICONS[k] + '"/></svg>';
       wrap.appendChild(a);
     });
   });
@@ -78,53 +75,57 @@
     Sound.tick();
   });
 
-  /* ---------- Contact form → email (FormSubmit) ---------- */
+  /* ---------- Project enquiry form → email (Web3Forms, FormSubmit fallback) ---------- */
   var form = $('#contactForm');
   function pickService(value) {
-    if (!form) return;
+    if (!form || !value) return;
     var r = $$('input[name="service"]', form).filter(function (i) { return i.value === value; })[0];
     if (r) r.checked = true;
   }
   if (form) {
     var body = $('.form__body', form), done = $('.form__done', form), err = $('.form__error', form);
     var btn = $('button[type="submit"]', form), btnLabel = $('.btn-label', btn);
+    var shownAt = Date.now(), sentAt = 0;
+    var contactLine = function () {
+      return 'Please email <a href="mailto:' + CFG.email + '">' + CFG.email + '</a> or <a href="https://wa.me/' + CFG.whatsapp + '" target="_blank" rel="noopener">WhatsApp me</a>.';
+    };
     function fail(msg) { err.innerHTML = msg; err.hidden = false; }
     form.addEventListener('submit', function (e) {
       e.preventDefault();
-      var d = new FormData(form);
-      var name = (d.get('name') || '').trim(), email = (d.get('email') || '').trim(), msg = (d.get('message') || '').trim();
-      if (!name || !msg || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        fail('Please add your name, a valid email and a short message.');
+      var d = new FormData(form), v = function (k) { return String(d.get(k) || '').trim(); };
+      var name = v('name'), email = v('email'), msg = v('message');
+      if (!name || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email) || msg.length < 10) {
+        fail('Please add your name, a valid business email and a few words about the project.');
         return;
       }
-      if (d.get('_honey')) return; // bot
+      // spam protection: hidden honeypot, a minimum fill time and one send per minute
+      if (v('_honey') || Date.now() - shownAt < 2500) { showDone(); return; }
+      if (sentAt && Date.now() - sentAt < 60000) { fail('Thanks, your enquiry is already on its way. ' + contactLine()); return; }
       err.hidden = true;
       btn.disabled = true; btnLabel.textContent = 'Sending…';
-      var subject = 'New website request: ' + d.get('service') + ' (' + name + ')';
       var fields = {
         name: name, email: email,
-        phone: (d.get('phone') || '').trim() || '-',
-        company: (d.get('company') || '').trim() || '-',
-        service: d.get('service'), budget: d.get('budget'), message: msg
+        company: v('company') || '-', country: v('country') || '-',
+        category: v('service'), estimated_value: v('value'), timeline: v('timeline'),
+        requirements: msg
       };
-      // Web3Forms when an access key is set, otherwise the FormSubmit fallback
+      var subject = 'New enquiry: ' + fields.category + ' · ' + fields.estimated_value + ' (' + name + ')';
       var useW3 = !!CFG.web3formsKey;
       var payload = useW3
         ? Object.assign({ access_key: CFG.web3formsKey, subject: subject, from_name: 'Ahmed Osama website', replyto: email, botcheck: '' }, fields)
-        : Object.assign({ _subject: subject, _template: 'table', _replyto: email }, fields);
+        : Object.assign({ _subject: subject, _template: 'table', _replyto: email, _captcha: 'false' }, fields);
       fetch(useW3 ? 'https://api.web3forms.com/submit' : CFG.formEndpoint, {
         method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         body: JSON.stringify(payload)
       }).then(function (r) { return r.json().catch(function () { return {}; }); }).then(function (res) {
-        if (String(res.success) === 'true') {
-          showDone();
-        } else {
+        if (String(res.success) === 'true') { sentAt = Date.now(); showDone(); }
+        else {
           var m = (res && res.message) ? String(res.message) : '';
-          fail('Your message could not be sent right now' + (m ? ' (' + m.replace(/</g, '&lt;') + ')' : '') + '. Please email <a href="mailto:' + CFG.email + '">' + CFG.email + '</a> or <a href="https://wa.me/' + CFG.whatsapp + '" target="_blank" rel="noopener">WhatsApp me</a>.');
+          fail('Your enquiry could not be sent right now' + (m ? ' (' + m.replace(/</g, '&lt;') + ')' : '') + '. ' + contactLine());
         }
       }).catch(function () {
-        fail('Connection problem. Please email <a href="mailto:' + CFG.email + '">' + CFG.email + '</a> or <a href="https://wa.me/' + CFG.whatsapp + '" target="_blank" rel="noopener">WhatsApp me</a>.');
-      }).then(function () { btn.disabled = false; btnLabel.textContent = 'Send my request'; });
+        fail('Connection problem. ' + contactLine());
+      }).then(function () { btn.disabled = false; btnLabel.textContent = 'Send enquiry'; });
     });
     function showDone() {
       body.hidden = true; done.hidden = false;
@@ -135,12 +136,93 @@
       if (window.Sound && Sound.isOn()) { Sound.tick(); setTimeout(Sound.tick, 160); }
     }
     $('.form__again', form).addEventListener('click', function () {
-      form.reset(); done.hidden = true; body.hidden = false;
+      form.reset(); done.hidden = true; body.hidden = false; shownAt = Date.now();
     });
     $$('[data-service]:not(.flow__item)').forEach(function (a) {
       a.addEventListener('click', function () { pickService(a.getAttribute('data-service')); });
     });
   }
+
+  /* ---------- Proof numbers expand for the full story ---------- */
+  $$('.num').forEach(function (n) {
+    n.addEventListener('click', function () {
+      var open = n.getAttribute('aria-expanded') !== 'true';
+      n.setAttribute('aria-expanded', String(open));
+      n.classList.toggle('is-open', open);
+      if (window.Sound) Sound.tick();
+      if (window.ScrollTrigger) setTimeout(function () { ScrollTrigger.refresh(); }, 450);
+    });
+  });
+
+  /* ---------- Testimonials appear only when real ones exist ---------- */
+  (function () {
+    var list = (window.TESTIMONIALS || []).filter(function (t) { return t && t.quote && t.name; });
+    var sec = $('#testimonials'); if (!sec || !list.length) return;
+    var esc = function (t) { return String(t || '').replace(/&/g, '&amp;').replace(/</g, '&lt;'); };
+    $('.quotes__grid', sec).innerHTML = list.map(function (t) {
+      return '<figure class="quote" data-reveal-batch><blockquote>' + esc(t.quote) + '</blockquote><figcaption><b>' + esc(t.name) + '</b><span>' + esc([t.role, t.company].filter(Boolean).join(', ')) + '</span></figcaption></figure>';
+    }).join('');
+    sec.hidden = false;
+  })();
+
+  /* ---------- Brand ecosystem: search + category filters ---------- */
+  (function () {
+    var wrap = $('.bfinder'); if (!wrap) return;
+    var input = $('input', wrap), btns = $$('.bf', wrap), chips = $$('.brand-list > li');
+    var count = $('.bcount'), empty = $('.bempty'), cat = 'all', total = chips.length, t = null;
+    function apply(animate) {
+      var q = input.value.trim().toLowerCase(), shown = [];
+      chips.forEach(function (li) {
+        var name = (li.getAttribute('data-name') || li.textContent).toLowerCase();
+        var ok = (cat === 'all' || (' ' + li.getAttribute('data-cats') + ' ').indexOf(' ' + cat + ' ') > -1) && (!q || name.indexOf(q) > -1);
+        li.hidden = !ok; if (ok) shown.push(li);
+      });
+      count.textContent = (q || cat !== 'all') ? 'Showing ' + shown.length + ' of ' + total + ' brands' : '';
+      empty.hidden = shown.length > 0;
+      if (animate && window.gsap && !reduce && shown.length) {
+        gsap.fromTo(shown, { y: 14, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, stagger: { each: Math.min(0.02, 0.6 / shown.length) }, ease: 'power3.out', overwrite: true });
+      }
+      if (window.ScrollTrigger) { clearTimeout(t); t = setTimeout(function () { ScrollTrigger.refresh(); }, 300); }
+    }
+    chips.forEach(function (li) { li.setAttribute('data-name', li.textContent.trim()); });
+    btns.forEach(function (b) {
+      b.addEventListener('click', function () {
+        cat = b.getAttribute('data-filter');
+        btns.forEach(function (o) { o.setAttribute('aria-pressed', String(o === b)); });
+        apply(true);
+        if (window.Sound) Sound.tick();
+      });
+    });
+    input.addEventListener('input', function () { apply(false); });
+  })();
+
+  /* ---------- Network: pick a market, the globe turns to it ---------- */
+  var globe = null;
+  $$('.markets [data-market]').forEach(function (b) {
+    function go() {
+      $$('.markets [data-market]').forEach(function (o) { o.setAttribute('aria-pressed', String(o === b)); });
+      if (globe && globe.focus) globe.focus(b.getAttribute('data-market'));
+    }
+    b.setAttribute('aria-pressed', 'false');
+    b.addEventListener('click', go);
+    if (finePointer) b.addEventListener('pointerenter', go);
+  });
+
+  /* ---------- Optional analytics (only when an ID is set in config.js) ---------- */
+  (function () {
+    var a = CFG.analytics || {};
+    function add(src, attrs) {
+      var sc = document.createElement('script'); sc.src = src; sc.defer = true;
+      Object.keys(attrs || {}).forEach(function (k) { sc.setAttribute(k, attrs[k]); });
+      document.head.appendChild(sc);
+    }
+    var go = function () {
+      if (a.plausible) add('https://plausible.io/js/script.js', { 'data-domain': a.plausible });
+      if (a.cloudflare) add('https://static.cloudflareinsights.com/beacon.min.js', { 'data-cf-beacon': JSON.stringify({ token: a.cloudflare }) });
+      if (a.goatcounter) add('https://gc.zgo.at/count.js', { 'data-goatcounter': 'https://' + a.goatcounter + '.goatcounter.com/count' });
+    };
+    if (a.plausible || a.cloudflare || a.goatcounter) window.addEventListener('load', function () { setTimeout(go, 1500); });
+  })();
 
   /* ---------- Mobile menu ---------- */
   var burger = $('.nav__burger'), menu = $('#menu'), lenis = null;
@@ -173,30 +255,6 @@
     });
   });
 
-  /* ---------- Brand access tabs ---------- */
-  var tabs = $$('.brands__tabs [role="tab"]');
-  tabs.forEach(function (tab) {
-    tab.addEventListener('click', function () {
-      tabs.forEach(function (t) { t.setAttribute('aria-selected', String(t === tab)); });
-      $$('.brands__panel').forEach(function (panel) {
-        var on = panel.getAttribute('data-panel') === tab.getAttribute('data-tab');
-        panel.hidden = !on;
-        if (on && window.gsap && !reduce) {
-          gsap.fromTo($$('.chips li', panel), { y: 18, opacity: 0, scale: 0.9 }, { y: 0, opacity: 1, scale: 1, duration: 0.5, stagger: { each: 0.012, from: 'random' }, ease: 'power3.out' });
-        }
-      });
-      if (window.Sound) Sound.tick();
-    });
-    tab.addEventListener('keydown', function (e) {
-      var i = tabs.indexOf(tab);
-      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
-        e.preventDefault();
-        var next = tabs[(i + (e.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length];
-        next.focus(); next.click();
-      }
-    });
-  });
-
   /* ---------- Static fallback ---------- */
   function scrollToEl(el) {
     if (!el) return;
@@ -211,6 +269,8 @@
   if (!hasGsap) {
     document.documentElement.classList.remove('js');
     window.__siteReady = true;
+    var g0 = $('.gate'); if (g0) g0.remove();
+    if (window.initGlobe) globe = window.initGlobe($('#globe'), { static: true });
     if (window.Effects) Effects.init({ onBook: onBook });
     return;
   }
@@ -244,13 +304,18 @@
 
   /* ---------- WebGL stage + globe + effects ---------- */
   var stage = window.initStage ? window.initStage($('#stage'), { static: reduce }) : null;
-  if (window.initGlobe) window.initGlobe($('#globe'), { static: reduce });
+  if (window.initGlobe) globe = window.initGlobe($('#globe'), { static: reduce });
   if (window.Effects) Effects.init({ onBook: onBook });
 
   /* ---------- Hero intro ---------- */
   var heroName = $('.hero__name');
-  var heroSplit = window.SplitText ? SplitText.create($$('.hero__word'), { type: 'chars' }) : null;
+  var fontsOk = Promise.race([
+    (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve(),
+    new Promise(function (r) { setTimeout(r, 1500); })
+  ]);
+  var heroSplit = null;
   function heroIntro() {
+    if (!heroSplit && window.SplitText) heroSplit = SplitText.create($$('.hero__word'), { type: 'chars' });
     gsap.set(heroName, { autoAlpha: 1 });
     gsap.set('[data-intro]', { opacity: 1 });
     var tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
@@ -261,6 +326,8 @@
     }
     tl.from('.kicker', { opacity: 0, y: 16, duration: 1 }, 0.9)
       .from('.hero__line', { opacity: 0, y: 20, filter: 'blur(8px)', duration: 1.2, clearProps: 'filter' }, 1.2)
+      .from('.hero__sub', { opacity: 0, y: 16, duration: 1 }, 1.35)
+      .from('.hero__caps li', { opacity: 0, y: 14, stagger: 0.1, duration: 0.9 }, 1.45)
       .from('.hero__ctas > *', { opacity: 0, y: 24, stagger: 0.12, duration: 1 }, 1.4)
       .from('.orbit-badge', { opacity: 0, scale: 0.6, rotate: -90, duration: 1.4, ease: 'expo.out' }, 1.5)
       .from('.nav', { opacity: 0, y: -20, duration: 1, clearProps: 'opacity,transform' }, 1.2)
@@ -284,52 +351,36 @@
     }
   }
   function ready() {
-    if (!location.hash) { window.scrollTo(0, 0); if (lenis) lenis.scrollTo(0, { immediate: true }); }
     if (lenis) lenis.start();
+    if (!location.hash) { window.scrollTo(0, 0); if (lenis) lenis.scrollTo(0, { immediate: true, force: true }); }
     ScrollTrigger.refresh();
   }
 
-  /* ---------- Loader → gate → enter ---------- */
-  var loader = $('.loader'), gate = $('.gate');
-  if (reduce) {
-    loader.remove(); gate.remove();
-    gsap.set(heroName, { autoAlpha: 1 }); gsap.set('[data-intro]', { opacity: 1 });
-    if (stage) { stage.state.intro = 1; stage.redraw(); }
+  /* ---------- Entry gate (first visit of a session) → enter ---------- */
+  var gate = $('.gate');
+  if (reduce || store.get('ao-entered') || document.documentElement.classList.contains('entered')) {
+    if (gate) gate.remove();
+    if (reduce) {
+      gsap.set(heroName, { autoAlpha: 1 }); gsap.set('[data-intro]', { opacity: 1 });
+      if (stage) { stage.state.intro = 1; stage.redraw(); }
+    } else fontsOk.then(heroIntro);
     ready();
-  } else {
-    var fontsReady = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
-    var minTime = new Promise(function (r) { setTimeout(r, 1900); });
-    var cap = new Promise(function (r) { setTimeout(r, 3000); });
-    gsap.to('.loader__emblem .draw', { strokeDashoffset: 0, duration: 1.8, stagger: 0.12, ease: 'power2.inOut' });
-    gsap.to('.loader__bar span', { scaleX: 0.85, duration: 1.9, ease: 'power2.out' });
-    Promise.race([Promise.all([minTime, fontsReady]), cap]).then(function () {
-      gsap.to('.loader__bar span', { scaleX: 1, duration: 0.3 });
-      var skipGate = store.get('ao-entered');
-      gsap.timeline({ delay: 0.35 })
-        .to(['.loader__brand', '.loader__bar'], { opacity: 0, duration: 0.5 })
-        .to('.loader__emblem', { scale: 0.4, opacity: 0, duration: 0.8, ease: 'power3.in' }, 0)
-        .add(function () {
-          if (skipGate) { loader.remove(); gate.remove(); heroIntro(); ready(); return; }
-          openGate();
-        });
-    });
-  }
+  } else openGate();
   function openGate() {
     gate.classList.add('is-open');
-    gate.setAttribute('aria-hidden', 'false');
-    loader.remove();
     var stopBrain = (window.Effects && Effects.brain) ? Effects.brain($('.gate__brain', gate)) : function () {};
     var eyeCtl = (window.Effects && Effects.eyes) ? Effects.eyes(gate) : null;
-    var parts = window.SplitText ? SplitText.create(['.gate__top', '.gate__bottom'], { type: 'chars', charsClass: 'gch' }) : null;
-    var tl = gsap.timeline();
-    if (parts) tl.from(parts.chars, { yPercent: 60, opacity: 0, filter: 'blur(10px)', stagger: 0.035, duration: 1.1, ease: 'power3.out', clearProps: 'filter' });
-    tl.from('.gate__mid > *', { opacity: 0, y: 20, stagger: 0.12, duration: 0.8, ease: 'power3.out' }, 0.5);
+    gsap.from('.gate__mid > *', { opacity: 0, y: 20, stagger: 0.12, duration: 0.8, ease: 'power3.out' });
 
-    // "UP" keeps jumping like a looping GIF: crouch, leap, fall, squash, settle
-    var up = $$('.jump .gch', gate), shadow = $('.jump__shadow', gate), jump = null;
+    // the headings are already painted; only "UP" is split so it can jump like a looping GIF
+    var jump = null;
+    fontsOk.then(function () {
+    if (!window.SplitText || gate.classList.contains('is-leaving')) return;
+    SplitText.create('.jump', { type: 'chars', charsClass: 'gch' });
+    var up = $$('.jump .gch', gate), shadow = $('.jump__shadow', gate);
     if (up.length) {
       gsap.set(up, { transformOrigin: '50% 100%' });
-      jump = gsap.timeline({ repeat: -1, repeatDelay: 0.45, delay: 1.7 });
+      jump = gsap.timeline({ repeat: -1, repeatDelay: 0.45, delay: 1 });
       jump.to(up, { scaleY: 0.8, scaleX: 1.14, duration: 0.16, ease: 'power2.out', stagger: 0.07 })
         .to(up, { y: -48, scaleY: 1.12, scaleX: 0.9, rotation: function (i) { return i ? 6 : -6; }, duration: 0.34, ease: 'power2.out', stagger: 0.07 })
         .to(up, { y: 0, scaleY: 1, scaleX: 1, rotation: 0, duration: 0.3, ease: 'power2.in', stagger: 0.07 })
@@ -341,6 +392,7 @@
           .to(shadow, { scaleX: 1, duration: 0.4, ease: 'power2.out' }, 0.9);
       }
     }
+    });
 
     var first = $('[data-enter="sound"]', gate); if (first) first.focus({ preventScroll: true });
     $$('[data-enter]', gate).forEach(function (b) {
@@ -391,9 +443,12 @@
 
   /* ---------- Masked heading reveals ---------- */
   if (window.SplitText) {
-    $$('[data-split]').forEach(function (h) {
-      var sp = SplitText.create(h, { type: 'lines', mask: 'lines' });
-      gsap.from(sp.lines, { yPercent: 105, duration: 1.3, stagger: 0.12, ease: 'expo.out', scrollTrigger: { trigger: h, start: 'top 86%', once: true } });
+    fontsOk.then(function () {
+      $$('[data-split]').forEach(function (h) {
+        var sp = SplitText.create(h, { type: 'lines', mask: 'lines' });
+        gsap.from(sp.lines, { yPercent: 105, duration: 1.3, stagger: 0.12, ease: 'expo.out', scrollTrigger: { trigger: h, start: 'top 86%', once: true } });
+      });
+      ScrollTrigger.refresh();
     });
   }
   $$('[data-reveal]').forEach(function (el) {
@@ -424,7 +479,7 @@
   // premium brand wall and chips cascade in
   if ($('.premium')) {
     gsap.from('.premium li', { y: 40, opacity: 0, duration: 1, stagger: { each: 0.05, from: 'random' }, ease: 'power3.out', scrollTrigger: { trigger: '.premium', start: 'top 88%', once: true } });
-    gsap.from('.brands__panel:not([hidden]) .chips li', { y: 18, opacity: 0, duration: 0.6, stagger: { each: 0.01, from: 'random' }, ease: 'power3.out', scrollTrigger: { trigger: '.brands__panel', start: 'top 90%', once: true } });
+    gsap.from('.brand-list > li', { y: 18, opacity: 0, duration: 0.6, stagger: { each: 0.01, from: 'random' }, ease: 'power3.out', scrollTrigger: { trigger: '.brand-list', start: 'top 90%', once: true } });
   }
 
   // service lines slide in from alternating sides
@@ -474,7 +529,7 @@
     cursor.classList.add('is-hidden');
     window.addEventListener('pointermove', function (e) { cx(e.clientX); cy(e.clientY); cursor.classList.remove('is-hidden'); }, { passive: true });
     document.addEventListener('pointerleave', function () { cursor.classList.add('is-hidden'); });
-    var LABELS = [['.flow__item', 'Open'], ['.case', 'Reveal'], ['.trail', 'Move'], ['.bcard', 'Tap'], ['.feature', 'Play'], ['.short', 'Play'], ['.me__shot', 'View'], ['.bl', 'Visit']];
+    var LABELS = [['.flow__item', 'Open'], ['.case', 'Open'], ['.num', 'More'], ['.markets button', 'Focus'], ['.trail', 'Move'], ['.bcard', 'Tap'], ['.feature', 'Play'], ['.short', 'Play'], ['.me__shot', 'View'], ['.bl', 'Visit']];
     document.addEventListener('pointerover', function (e) {
       var text = '';
       for (var i = 0; i < LABELS.length; i++) { if (e.target.closest(LABELS[i][0])) { text = LABELS[i][1]; break; } }
