@@ -9,7 +9,6 @@ window.CASES = {
   'ai-infrastructure': {
     label: 'Case study · AI infrastructure',
     title: 'GPU clusters for AI data centres',
-    media: ['rack', 'gpu', 'network'],
     service: 'AI Infrastructure',
     meta: [
       ['Clients', 'Enterprise, sovereign AI and hosting buyers (confidential)'],
@@ -36,7 +35,6 @@ window.CASES = {
   'bizaar': {
     label: 'Case study · Distribution',
     title: 'Bizaar.ai: from scratch to networking distributor',
-    media: ['network', 'globe', 'bars'],
     service: 'Global Commercial Development',
     meta: [
       ['Company', 'Bizaar.ai, under TLM Distribution'],
@@ -60,7 +58,6 @@ window.CASES = {
   'cartlow': {
     label: 'Case study · Marketplace',
     title: 'Cartlow: marketplace revenue growth',
-    media: ['line', 'cart', 'bars'],
     service: 'Global Commercial Development',
     meta: [
       ['Company', 'Cartlow (Basatne Group), Dubai'],
@@ -87,7 +84,6 @@ window.CASES = {
   'microless': {
     label: 'Case study · Enterprise & gaming',
     title: 'Microless: enterprise portfolio & high-end gaming PCs',
-    media: ['img:assets/me/pc-rog.jpg', 'gpu', 'pad'],
     service: 'Technology & Gaming',
     meta: [
       ['Company', 'Microless, Dubai'],
@@ -112,7 +108,6 @@ window.CASES = {
   'dubai-police': {
     label: 'Project · Esports',
     title: 'Esports events for Dubai Police',
-    media: ['trophy', 'pad', 'gpu'],
     service: 'Technology & Gaming',
     meta: [
       ['Client', 'Dubai Police'],
@@ -126,7 +121,6 @@ window.CASES = {
   'tabby': {
     label: 'Project · B2B sales',
     title: 'Tabby: sale and brand expansion',
-    media: ['card', 'coin', 'line'],
     service: 'Global Commercial Development',
     meta: [
       ['Client', 'Tabby'],

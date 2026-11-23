@@ -1268,6 +1268,35 @@ button.num { text-align: left; width: 100%; align-items: flex-start; justify-con
   .me__shot { height: 320px; }
 }
 
+
+/* ---------- Clarity: cursor never hides text; plain, readable panels ---------- */
+@media (hover: hover) and (pointer: fine) {
+  .cursor.is-label { width: 74px; height: 74px; margin: -37px 0 0 -37px; mix-blend-mode: normal; background: rgba(20, 20, 19, .9); border: 1px solid var(--ink); }
+}
+.cursor.is-label .cursor__label { color: var(--ink); }
+.sparks { mix-blend-mode: difference; } /* click sparks stay visible and never erase text on light cards */
+.case__cap .label { letter-spacing: .18em; }
+.case__open { font-size: .74rem; }
+.drawer.no-media .drawer__media { display: none; }
+.drawer.no-media .drawer__content { padding-top: 2.4rem; }
+.drawer__content h3 { font-size: clamp(1.7rem, 3.2vw, 2.4rem); line-height: 1.05; }
+.drawer__content > p:not(.label), .drawer__content .ticks li { color: rgba(236, 230, 216, .86); font-size: 1rem; line-height: 1.7; }
+.csub { display: block; margin: 0 0 .8rem; }
+.csteps { border-top: 1px solid var(--line-2); margin-bottom: 1.2rem; }
+.cstep { display: grid; grid-template-columns: 2.6rem 1fr; column-gap: 1rem; padding: 1.3rem 0; border-bottom: 1px solid var(--line); }
+.cstep__n { grid-row: span 2; color: var(--dim); font-size: 1.3rem; line-height: 1.2; }
+.cstep h4 { font-family: var(--sans); font-size: .74rem; font-weight: 600; letter-spacing: .24em; text-transform: uppercase; color: var(--ink); margin: .15rem 0 .5rem; }
+.cstep p { color: rgba(236, 230, 216, .86); font-size: 1rem; line-height: 1.7; margin: 0; }
+.cstep .ticks { margin: 0; gap: .55rem; }
+.cstep .ticks li { color: rgba(236, 230, 216, .86); font-size: .98rem; line-height: 1.6; }
+.outcomes { margin-bottom: 1.6rem; }
+.outcomes span { color: rgba(236, 230, 216, .82); }
+.cmeta dd { color: var(--ink); }
+@media (max-width: 640px) {
+  .cstep { grid-template-columns: 2rem 1fr; column-gap: .7rem; }
+  .cstep__n { font-size: 1.1rem; }
+}
+
 /* =========================================================
    Reduced motion
    ========================================================= */

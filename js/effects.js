@@ -160,7 +160,7 @@ window.Effects = (function () {
       }
       $('.flow__link', item).addEventListener('click', function () {
         var tpl = $('.flow__detail', item);
-        openDrawer(tpl ? tpl.innerHTML : '', (item.getAttribute('data-media') || '').split(','), item.getAttribute('data-service'));
+        openDrawer(tpl ? tpl.innerHTML : '', [], item.getAttribute('data-service'));
       });
     });
 
@@ -182,6 +182,7 @@ window.Effects = (function () {
   function openDrawer(html, media, service) {
     if (!drawer) return;
     $('.drawer__content', drawer).innerHTML = html;
+    drawer.classList.toggle('no-media', !(media || []).filter(Boolean).length);
     $('.drawer__media', drawer).innerHTML = (media || []).filter(Boolean).map(function (m) {
       var p = m.split(':');
       return p[0] === 'img' ? '<figure><img src="' + p[1] + '" alt="Ahmed Osama"></figure>' : '<figure class="is-viz">' + viz(p[1]) + '</figure>';
@@ -220,13 +221,17 @@ window.Effects = (function () {
   function esc(t) { return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
   function openCase(id) {
     var c = (window.CASES || {})[id]; if (!c) return;
-    var h = '<p class="label">' + esc(c.label) + '</p><h3 class="display">' + esc(c.title) + '</h3>';
+    var h = '<p class="label">' + esc(c.label) + '</p><h3 class="display case-title">' + esc(c.title) + '</h3>';
     if (c.meta) h += '<dl class="cmeta">' + c.meta.map(function (m) { return '<div><dt>' + esc(m[0]) + '</dt><dd>' + esc(m[1]) + '</dd></div>'; }).join('') + '</dl>';
-    if (c.outcome) h += '<ul class="outcomes">' + c.outcome.map(function (o) { return '<li><b class="display">' + esc(o[0]) + '</b><span>' + esc(o[1]) + '</span></li>'; }).join('') + '</ul>';
-    [['Challenge', c.challenge], ['Solution', c.solution], ['Overview', c.overview]].forEach(function (x) { if (x[1]) h += '<h4 class="label">' + x[0] + '</h4><p>' + esc(x[1]) + '</p>'; });
-    if (c.execution) h += '<h4 class="label">Execution</h4><ul class="ticks">' + c.execution.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>';
+    if (c.outcome) h += '<h4 class="label csub">Results</h4><ul class="outcomes">' + c.outcome.map(function (o) { return '<li><b class="display">' + esc(o[0]) + '</b><span>' + esc(o[1]) + '</span></li>'; }).join('') + '</ul>';
+    var n = 0, steps = '';
+    [['Challenge', c.challenge], ['Solution', c.solution], ['Overview', c.overview]].forEach(function (x) {
+      if (x[1]) steps += '<div class="cstep"><span class="cstep__n display">0' + (++n) + '</span><h4>' + x[0] + '</h4><p>' + esc(x[1]) + '</p></div>';
+    });
+    if (c.execution) steps += '<div class="cstep"><span class="cstep__n display">0' + (++n) + '</span><h4>Execution</h4><ul class="ticks">' + c.execution.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul></div>';
+    h += '<div class="csteps">' + steps + '</div>';
     if (c.note) h += '<p class="fineprint">' + esc(c.note) + '</p>';
-    openDrawer(h, (c.media || []).map(function (v) { return v.indexOf(':') > 0 ? v : 'viz:' + v; }), c.service);
+    openDrawer(h, [], c.service);
   }
 
   /* ---------- Video modal ---------- */
@@ -345,7 +350,8 @@ window.Effects = (function () {
         tl = G.timeline()
           .to(cells, { opacity: 1, duration: 0.01, stagger: { each: 0.004, from: 'random' } })
           .add(function () { card.classList.toggle('is-flipped', on); })
-          .to(cells, { opacity: 0, duration: 0.01, stagger: { each: 0.004, from: 'random' } }, '+=0.05');
+          .to(cells, { opacity: 0, duration: 0.01, stagger: { each: 0.004, from: 'random' } }, '+=0.05')
+          .add(function () { G.set(cells, { opacity: 0 }); });
         if (window.Sound) Sound.tick();
       }
       var id = card.getAttribute('data-case');
