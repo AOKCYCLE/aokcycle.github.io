@@ -453,11 +453,182 @@ window.Effects = (function () {
     });
   }
 
+  /* ---------- Brand names turn into line-drawn logos on hover / tap ---------- */
+  function brandLogos() {
+    var L = window.BRAND_LOGOS || {};
+    $$('.premium li, .chips li').forEach(function (li) {
+      var name = li.textContent.trim(), d = L[name], art;
+      if (d) {
+        art = '<svg class="bl__logo" viewBox="0 0 24 24" aria-hidden="true"><path pathLength="1" d="' + d + '"/></svg>';
+      } else {
+        var ini = name.replace(/[^A-Za-z0-9 .-]/g, '').split(/[\s.-]+/).filter(Boolean).map(function (w) { return w[0]; }).join('').slice(0, 2).toUpperCase();
+        art = '<svg class="bl__logo bl__logo--mono" viewBox="0 0 24 24" aria-hidden="true"><circle pathLength="1" cx="12" cy="12" r="10.6"/><circle pathLength="1" cx="12" cy="12" r="8.6"/><text x="12" y="15.3" text-anchor="middle">' + ini + '</text></svg>';
+      }
+      li.innerHTML = '<span class="bl__name">' + li.innerHTML + '</span>' + art;
+      li.classList.add('bl');
+      li.setAttribute('title', name);
+      var svg = li.querySelector('.bl__logo'), fitted = false;
+      function fit() {
+        // crop the viewBox tight around the logo so wide wordmarks fill the tile, then keep strokes ~1px
+        if (!fitted && !svg.classList.contains('bl__logo--mono')) {
+          try { var b = svg.querySelector('path').getBBox(); if (b.width && b.height) svg.setAttribute('viewBox', [b.x - 0.4, b.y - 0.4, b.width + 0.8, b.height + 0.8].join(' ')); } catch (e) { /* not rendered yet */ }
+          fitted = true;
+        }
+        var r = svg.getBoundingClientRect(), vb = svg.viewBox.baseVal;
+        var scale = Math.min(r.width / vb.width, r.height / vb.height) || 1;
+        svg.style.setProperty('--sw', (li.closest('.chips') ? 0.9 : 1.15) / scale);
+      }
+      function on() { fit(); li.classList.add('is-logo'); if (window.Sound) Sound.tick(); }
+      function off() { li.classList.remove('is-logo'); }
+      if (fine) { li.addEventListener('pointerenter', on); li.addEventListener('pointerleave', off); }
+      else li.addEventListener('click', function () { li.classList.contains('is-logo') ? off() : on(); });
+    });
+  }
+
+  /* ---------- Entry gate: blinking eye buttons ---------- */
+  function eyeSVG(id) {
+    var shape = 'M8 48Q80-14 152 48Q80 110 8 48Z', fibers = '';
+    for (var a = 0; a < 360; a += 20) {
+      var c = Math.cos(a * Math.PI / 180), s = Math.sin(a * Math.PI / 180);
+      fibers += 'M' + (80 + c * 12.5).toFixed(1) + ' ' + (48 + s * 12.5).toFixed(1) + 'L' + (80 + c * 23.5).toFixed(1) + ' ' + (48 + s * 23.5).toFixed(1);
+    }
+    return '<svg class="eye" viewBox="0 0 160 96" aria-hidden="true"><defs><clipPath id="' + id + '"><path d="' + shape + '"/></clipPath></defs>' +
+      '<path class="eye__crease" d="M14 22Q80-26 146 22"/>' +
+      '<g class="eye__lids"><g clip-path="url(#' + id + ')"><path class="eye__white" d="' + shape + '"/>' +
+      '<g class="eye__look"><circle class="eye__iris" cx="80" cy="48" r="25"/><path class="eye__fibers" d="' + fibers + '"/>' +
+      '<circle class="eye__pupil" cx="80" cy="48" r="10.5"/><circle class="eye__glint" cx="88" cy="40" r="3.2"/></g></g>' +
+      '<path class="eye__outline" d="' + shape + '"/>' +
+      '<path class="eye__lashes" d="M36.8 28.2L28.8 22.3M58.4 19.8L53.7 11M80 17V6M101.6 19.8L106.3 11M123.2 28.2L131.2 22.3"/></g></svg>';
+  }
+  function eyes(root) {
+    var items = $$('.eye-btn', root).map(function (b, i) {
+      var holder = $('[data-eye]', b);
+      if (holder) holder.outerHTML = eyeSVG('eyeclip' + i);
+      return { b: b, lids: $('.eye__lids', b), look: $('.eye__look', b), svg: $('svg.eye', b), t: 0 };
+    });
+    if (!G) return null;
+    G.set(items.map(function (it) { return it.lids; }), { transformOrigin: '50% 62%' });
+    function blinkOne(it, times) {
+      var tl = G.timeline();
+      for (var i = 0; i < (times || 1); i++) {
+        tl.to(it.lids, { scaleY: 0.04, duration: 0.07, ease: 'power2.in' })
+          .to(it.lids, { scaleY: 1, duration: 0.14, ease: 'power2.out' }, '+=0.03');
+      }
+      return tl;
+    }
+    var alive = true;
+    items.forEach(function (it) {
+      (function loop() {
+        it.t = setTimeout(function () { if (!alive) return; blinkOne(it, Math.random() < 0.25 ? 2 : 1); loop(); }, 1800 + Math.random() * 3400);
+      })();
+      it.b.addEventListener('pointerenter', function () { G.to(it.lids, { scaleY: 1.12, duration: 0.35, ease: 'power3.out' }); });
+      it.b.addEventListener('pointerleave', function () { G.to(it.lids, { scaleY: 1, duration: 0.5, ease: 'power3.out' }); });
+    });
+    function onMove(e) {
+      items.forEach(function (it) {
+        var r = it.svg.getBoundingClientRect();
+        var dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2);
+        G.to(it.look, { x: Math.max(-16, Math.min(16, dx / 16)), y: Math.max(-7, Math.min(7, dy / 26)), duration: 0.45, ease: 'power3.out' });
+      });
+    }
+    window.addEventListener('pointermove', onMove, { passive: true });
+    return {
+      blink: function (btn, done) {
+        var tl = G.timeline({ onComplete: done });
+        items.forEach(function (it) { tl.add(blinkOne(it, it.b === btn ? 2 : 1), 0); });
+        return tl;
+      },
+      destroy: function () {
+        alive = false;
+        items.forEach(function (it) { clearTimeout(it.t); });
+        window.removeEventListener('pointermove', onMove);
+      }
+    };
+  }
+
+  /* ---------- Entry gate: neuron brain (canvas) ---------- */
+  function brain(canvas) {
+    if (!canvas || !canvas.getContext) return function () {};
+    var ctx = canvas.getContext('2d');
+    var OUT = 'M30 70C18 66 12 52 20 42C14 30 24 16 38 18C44 8 60 6 70 14C80 6 96 8 102 18C116 16 126 30 120 42C128 52 122 66 110 70C108 80 96 86 86 82C80 90 60 90 54 82C44 86 32 80 30 70Z';
+    var outline = new Path2D(OUT);
+    var fissure = new Path2D('M70 14C67 28 73 40 70 52C67 64 72 74 70 86');
+    var gyri = new Path2D('M34 34C42 30 48 36 56 32M26 52C34 48 42 54 52 50M38 68C46 64 52 70 60 66M84 32C92 36 100 30 108 34M88 50C96 54 104 48 114 52M80 66C88 70 96 64 104 68');
+    var dpr = Math.min(window.devicePixelRatio || 1, 2), W, H;
+    function size() {
+      W = canvas.clientWidth || 160; H = canvas.clientHeight || 115;
+      canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
+    }
+    size();
+    // neurons scattered inside the brain outline, 140 x 100 design space
+    var nodes = [], tries = 0;
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    while (nodes.length < 46 && tries++ < 4000) {
+      var x = 14 + Math.random() * 112, y = 8 + Math.random() * 82;
+      if (!ctx.isPointInPath(outline, x, y)) continue;
+      if (nodes.some(function (n) { return Math.hypot(n.x - x, n.y - y) < 9.5; })) continue;
+      nodes.push({ x: x, y: y, g: 0, links: [] });
+    }
+    var edges = [];
+    nodes.forEach(function (n, i) {
+      nodes.map(function (m, j) { return { j: j, d: Math.hypot(m.x - n.x, m.y - n.y) }; })
+        .filter(function (o) { return o.j !== i; }).sort(function (a, b) { return a.d - b.d; }).slice(0, 3)
+        .forEach(function (o) {
+          if (edges.some(function (e) { return (e.a === i && e.b === o.j) || (e.a === o.j && e.b === i); })) return;
+          var k = edges.length; edges.push({ a: i, b: o.j });
+          n.links.push(k); nodes[o.j].links.push(k);
+        });
+    });
+    var signals = [], running = true, last = performance.now(), spawn = 0, raf = 0;
+    function fire(from) {
+      var n = nodes[from]; if (!n || !n.links.length) return;
+      var k = n.links[Math.floor(Math.random() * n.links.length)], e = edges[k];
+      signals.push({ e: k, from: from, to: e.a === from ? e.b : e.a, t: 0, v: 1.4 + Math.random() * 1.2 });
+    }
+    function frame(now) {
+      var dt = Math.min(0.05, (now - last) / 1000); last = now;
+      spawn -= dt;
+      if (spawn <= 0 && signals.length < 26) { fire(Math.floor(Math.random() * nodes.length)); spawn = 0.09; }
+      var sx = W / 140, sy = H / 100;
+      ctx.setTransform(dpr * sx, 0, 0, dpr * sy, 0, 0);
+      ctx.clearRect(0, 0, 140, 100);
+      ctx.lineCap = 'round';
+      ctx.strokeStyle = 'rgba(236,230,216,.55)'; ctx.lineWidth = 1.1 / sx; ctx.stroke(outline);
+      ctx.strokeStyle = 'rgba(236,230,216,.28)'; ctx.lineWidth = 0.8 / sx; ctx.stroke(fissure); ctx.stroke(gyri);
+      ctx.strokeStyle = 'rgba(236,230,216,.16)'; ctx.lineWidth = 0.6 / sx;
+      ctx.beginPath();
+      edges.forEach(function (e) { var a = nodes[e.a], b = nodes[e.b]; ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); });
+      ctx.stroke();
+      signals = signals.filter(function (s) {
+        s.t += dt * s.v;
+        var a = nodes[s.from], b = nodes[s.to];
+        if (s.t >= 1) { b.g = 1; if (Math.random() < 0.55) fire(s.to); return false; }
+        var x = a.x + (b.x - a.x) * s.t, y = a.y + (b.y - a.y) * s.t;
+        ctx.strokeStyle = 'rgba(255,250,238,.85)'; ctx.lineWidth = 1 / sx;
+        ctx.beginPath(); ctx.moveTo(a.x + (b.x - a.x) * Math.max(0, s.t - 0.25), a.y + (b.y - a.y) * Math.max(0, s.t - 0.25)); ctx.lineTo(x, y); ctx.stroke();
+        ctx.fillStyle = '#fffaf0'; ctx.beginPath(); ctx.arc(x, y, 1.1, 0, Math.PI * 2); ctx.fill();
+        return true;
+      });
+      nodes.forEach(function (n) {
+        n.g = Math.max(0, n.g - dt * 1.6);
+        if (n.g > 0.02) { ctx.fillStyle = 'rgba(236,230,216,' + (0.18 * n.g).toFixed(3) + ')'; ctx.beginPath(); ctx.arc(n.x, n.y, 4.5 * n.g + 1.5, 0, Math.PI * 2); ctx.fill(); }
+        ctx.fillStyle = 'rgba(236,230,216,' + (0.45 + n.g * 0.55).toFixed(3) + ')';
+        ctx.beginPath(); ctx.arc(n.x, n.y, 1.1 + n.g * 1.1, 0, Math.PI * 2); ctx.fill();
+      });
+      if (running) raf = requestAnimationFrame(frame);
+    }
+    raf = requestAnimationFrame(frame);
+    window.addEventListener('resize', size);
+    return function stop() { running = false; cancelAnimationFrame(raf); window.removeEventListener('resize', size); };
+  }
+
   return {
     viz: viz,
+    eyes: eyes,
+    brain: brain,
     init: function (opts) {
       opts = opts || {};
-      injectViz(); rotatingText(); circularText(); flowingMenu(opts.onBook); videoModal(); agentConsole();
+      injectViz(); brandLogos(); rotatingText(); circularText(); flowingMenu(opts.onBook); videoModal(); agentConsole();
       magicBento(); pixelCards(); imageTrail(); clickSpark(); scramble(); scrollVelocity(); typewriter();
     }
   };

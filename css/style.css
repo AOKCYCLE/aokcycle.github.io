@@ -107,8 +107,6 @@ h1, h2, h3 { font-weight: 400; }
 }
 .gate__top, .gate__bottom { font-size: clamp(3rem, 11.5vw, 9.6rem); line-height: .9; }
 .gate__mid { display: flex; align-items: center; justify-content: center; gap: clamp(1.2rem, 8vw, 9rem); flex-wrap: wrap; }
-.gate__emblem { width: 64px; height: 64px; color: var(--ink); }
-.gate .frame-btn { min-width: 12.5rem; }
 
 /* ---------- Cursor, progress, sparks ---------- */
 .cursor { display: none; }
@@ -610,9 +608,6 @@ html:not(.js) .chapter__pin { position: relative; height: auto; display: flex; f
   .nav__logo { font-size: 1.05rem; }
   .hero__ctas { flex-direction: column; width: 100%; max-width: 320px; }
   .orbit-badge { display: none; }
-  .gate .frame-btn { min-width: 0; width: min(260px, 80vw); }
-  .gate__mid { flex-direction: column; gap: 1.2rem; }
-  .gate__emblem { order: -1; }
   .numbers { grid-template-columns: 1fr 1fr; }
   .num { min-height: 170px; padding: 1.3rem 1rem; }
   .num b { font-size: 2.3rem; }
@@ -767,6 +762,54 @@ html:not(.js) .chapter__pin { position: relative; height: auto; display: flex; f
 .brands__cta { margin-top: 2.4rem; }
 @media (max-width: 1100px) { .premium { grid-template-columns: repeat(3, 1fr); } }
 @media (max-width: 640px) { .premium { grid-template-columns: repeat(2, 1fr); } .premium li { min-height: 80px; } .chips li { font-size: .82rem; padding: .5rem .85rem; } .brands__cta .frame-btn { width: 100%; } }
+
+/* ---------- Entry gate: eyes, brain, jumping UP ---------- */
+.eye-btn { display: flex; flex-direction: column; align-items: center; gap: .9rem; color: var(--ink); padding: .4rem; }
+.eye-btn:focus-visible { outline: 1px solid var(--ink); outline-offset: 8px; }
+.eye { width: clamp(118px, 12vw, 170px); height: auto; overflow: visible; }
+.eye__crease { fill: none; stroke: currentColor; stroke-width: 1.2; opacity: .3; }
+.eye__white { fill: rgba(236, 230, 216, .05); transition: fill .4s; }
+.eye__outline { fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linejoin: round; }
+.eye__iris { fill: rgba(236, 230, 216, .08); stroke: currentColor; stroke-width: 1.6; transition: fill .4s; }
+.eye__fibers { fill: none; stroke: currentColor; stroke-width: .9; opacity: .55; }
+.eye__pupil { fill: #141413; stroke: currentColor; stroke-width: 1.4; }
+.eye__glint { fill: currentColor; }
+.eye__lashes { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+.eye-btn:hover .eye__iris { fill: rgba(236, 230, 216, .2); }
+.eye-btn:hover .eye__white { fill: rgba(236, 230, 216, .1); }
+.eye-btn__label { display: inline-flex; align-items: center; gap: .55rem; font-size: .72rem; font-weight: 600; letter-spacing: .24em; text-transform: uppercase; padding-bottom: .45rem; border-bottom: 1px solid var(--line-2); transition: border-color .4s, letter-spacing .5s var(--ease); }
+.eye-btn:hover .eye-btn__label { border-color: var(--ink); letter-spacing: .3em; }
+.gate__brain { width: clamp(140px, 15vw, 200px); aspect-ratio: 140 / 100; height: auto; display: block; }
+.jump { position: relative; display: inline-block; }
+.jump .gch { will-change: transform; }
+.jump__shadow { position: absolute; left: 8%; right: 8%; bottom: -.06em; height: .09em; border-radius: 50%; background: radial-gradient(ellipse at center, rgba(236, 230, 216, .55), transparent 70%); opacity: .6; transform-origin: center; }
+@media (max-width: 640px) {
+  .gate__mid { display: grid; grid-template-columns: 1fr 1fr; justify-items: center; align-items: start; gap: 1.6rem .6rem; width: 100%; max-width: 380px; }
+  .gate__brain { grid-column: 1 / -1; grid-row: 1; width: 150px; }
+  .eye { width: 120px; }
+  .eye-btn__label { font-size: .58rem; letter-spacing: .1em; gap: .4rem; white-space: nowrap; }
+}
+
+/* ---------- Brand logos drawn on hover ---------- */
+.bl { position: relative; }
+.bl__name { display: inline-block; transition: opacity .35s, filter .35s, transform .5s var(--ease); }
+.bl__logo { position: absolute; left: 50%; top: 50%; width: 74%; height: 56%; overflow: visible; pointer-events: none;
+  transform: translate(-50%, -50%) scale(.8); opacity: 0; transition: opacity .3s, transform .6s var(--ease); }
+.bl__logo path, .bl__logo circle { fill: currentColor; fill-opacity: 0; stroke: currentColor; stroke-width: var(--sw, .34); stroke-linejoin: round; stroke-dasharray: 1; stroke-dashoffset: 1; }
+.bl__logo--mono circle { fill: none; }
+.bl__logo--mono circle + circle { stroke-width: .22; }
+.bl__logo--mono text { font-family: var(--display); font-size: 8.4px; letter-spacing: .3px; fill: currentColor; stroke: none; opacity: 0; }
+.chips .bl__logo { width: 84%; height: 66%; }
+.bl__logo--mono circle { stroke-width: .5; }
+.bl__logo--mono circle + circle { stroke-width: .3; }
+.bl.is-logo .bl__name { opacity: 0; filter: blur(4px); transform: scale(.88); }
+.bl.is-logo .bl__logo { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+.bl.is-logo .bl__logo path { animation: logoDraw 1.1s cubic-bezier(.65, 0, .35, 1) forwards, logoFill .7s .8s ease forwards; }
+.bl.is-logo .bl__logo circle { animation: logoDraw .9s cubic-bezier(.65, 0, .35, 1) forwards; }
+.bl.is-logo .bl__logo--mono text { animation: logoText .5s .45s ease forwards; }
+@keyframes logoDraw { to { stroke-dashoffset: 0; } }
+@keyframes logoFill { to { fill-opacity: .16; } }
+@keyframes logoText { to { opacity: 1; } }
 
 /* =========================================================
    Reduced motion

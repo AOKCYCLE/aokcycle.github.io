@@ -21,7 +21,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Federo&family=Jost:wght@300;400;500;600&family=Italiana&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lenis@1.3.4/dist/lenis.css">
-  <link rel="stylesheet" href="css/style.css?v=6">
+  <link rel="stylesheet" href="css/style.css?v=7">
 
   <script>
     document.documentElement.classList.add('js');
@@ -91,11 +91,11 @@
   <div class="gate" aria-hidden="true">
     <h2 class="gate__top display">Ready to</h2>
     <div class="gate__mid">
-      <button type="button" class="frame-btn" data-enter="sound">Enter with sound</button>
-      <svg class="gate__emblem"><use href="#emblem"/></svg>
-      <button type="button" class="frame-btn" data-enter="silent">Enter in silence</button>
+      <button type="button" class="eye-btn" data-enter="sound"><span data-eye></span><span class="eye-btn__label"><i class="fa-solid fa-volume-high" aria-hidden="true"></i> Enter with sound</span></button>
+      <canvas class="gate__brain" aria-hidden="true"></canvas>
+      <button type="button" class="eye-btn" data-enter="silent"><span data-eye></span><span class="eye-btn__label"><i class="fa-solid fa-volume-xmark" aria-hidden="true"></i> Enter in silence</span></button>
     </div>
-    <h2 class="gate__bottom display">scale up?</h2>
+    <h2 class="gate__bottom display">scale <span class="jump">up<i class="jump__shadow" aria-hidden="true"></i></span>?</h2>
   </div>
 
   <div class="cursor" aria-hidden="true"><span class="cursor__label"></span></div>
@@ -453,7 +453,7 @@
           </div>
           <p class="head__intro" data-reveal>The brands I can source for your store, gaming setup, office or data centre: from premium flagships to the components inside them.</p>
         </header>
-        <p class="label brands__kicker" data-reveal>The premium tier</p>
+        <p class="label brands__kicker" data-reveal>The premium tier · hover or tap a brand to draw its logo</p>
         <ul class="premium"><li class="display">NVIDIA</li><li class="display">Apple</li><li class="display">Intel</li><li class="display">AMD</li><li class="display">Samsung</li><li class="display">ASUS</li><li class="display">Microsoft</li><li class="display">Dell</li><li class="display">Corsair</li><li class="display">Razer</li><li class="display">MSI</li><li class="display">Lian Li</li><li class="display">NZXT</li><li class="display">Fractal Design</li><li class="display">EK</li><li class="display">Sapphire</li><li class="display">be quiet!</li><li class="display">Thermal Grizzly</li></ul>
         <div class="brands__tabs" role="tablist" aria-label="Brand categories" data-reveal>
           <button type="button" role="tab" aria-selected="true" aria-controls="bp-hw" id="bt-hw" data-tab="hw">Computers &amp; hardware <sup>51</sup></button>
@@ -751,11 +751,12 @@
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lenis@1.3.4/dist/lenis.min.js"></script>
-  <script src="js/config.js?v=6"></script>
-  <script src="js/sound.js?v=6"></script>
-  <script src="js/scene.js?v=6"></script>
-  <script src="js/globe.js?v=6"></script>
-  <script src="js/effects.js?v=6"></script>
-  <script src="js/main.js?v=6"></script>
+  <script src="js/config.js?v=7"></script>
+  <script src="js/sound.js?v=7"></script>
+  <script src="js/scene.js?v=7"></script>
+  <script src="js/globe.js?v=7"></script>
+  <script src="js/brand-logos.js?v=7"></script>
+  <script src="js/effects.js?v=7"></script>
+  <script src="js/main.js?v=7"></script>
 </body>
 </html>

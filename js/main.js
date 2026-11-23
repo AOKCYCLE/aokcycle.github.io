@@ -292,23 +292,48 @@
     gate.classList.add('is-open');
     gate.setAttribute('aria-hidden', 'false');
     loader.remove();
-    var parts = window.SplitText ? SplitText.create(['.gate__top', '.gate__bottom'], { type: 'chars' }) : null;
+    var stopBrain = (window.Effects && Effects.brain) ? Effects.brain($('.gate__brain', gate)) : function () {};
+    var eyeCtl = (window.Effects && Effects.eyes) ? Effects.eyes(gate) : null;
+    var parts = window.SplitText ? SplitText.create(['.gate__top', '.gate__bottom'], { type: 'chars', charsClass: 'gch' }) : null;
     var tl = gsap.timeline();
     if (parts) tl.from(parts.chars, { yPercent: 60, opacity: 0, filter: 'blur(10px)', stagger: 0.035, duration: 1.1, ease: 'power3.out', clearProps: 'filter' });
     tl.from('.gate__mid > *', { opacity: 0, y: 20, stagger: 0.12, duration: 0.8, ease: 'power3.out' }, 0.5);
+
+    // "UP" keeps jumping like a looping GIF: crouch, leap, fall, squash, settle
+    var up = $$('.jump .gch', gate), shadow = $('.jump__shadow', gate), jump = null;
+    if (up.length) {
+      gsap.set(up, { transformOrigin: '50% 100%' });
+      jump = gsap.timeline({ repeat: -1, repeatDelay: 0.45, delay: 1.7 });
+      jump.to(up, { scaleY: 0.8, scaleX: 1.14, duration: 0.16, ease: 'power2.out', stagger: 0.07 })
+        .to(up, { y: -48, scaleY: 1.12, scaleX: 0.9, rotation: function (i) { return i ? 6 : -6; }, duration: 0.34, ease: 'power2.out', stagger: 0.07 })
+        .to(up, { y: 0, scaleY: 1, scaleX: 1, rotation: 0, duration: 0.3, ease: 'power2.in', stagger: 0.07 })
+        .to(up, { scaleY: 0.82, scaleX: 1.14, duration: 0.09, ease: 'power1.out', stagger: 0.07 })
+        .to(up, { scaleY: 1, scaleX: 1, duration: 0.55, ease: 'elastic.out(1, 0.32)', stagger: 0.07 });
+      if (shadow) {
+        jump.to(shadow, { scaleX: 0.4, opacity: 0.15, duration: 0.34, ease: 'power2.out' }, 0.18)
+          .to(shadow, { scaleX: 1.1, opacity: 0.6, duration: 0.3, ease: 'power2.in' }, 0.55)
+          .to(shadow, { scaleX: 1, duration: 0.4, ease: 'power2.out' }, 0.9);
+      }
+    }
+
     var first = $('[data-enter="sound"]', gate); if (first) first.focus({ preventScroll: true });
     $$('[data-enter]', gate).forEach(function (b) {
       b.addEventListener('click', function () {
+        if (gate.classList.contains('is-leaving')) return;
+        gate.classList.add('is-leaving');
         if (b.getAttribute('data-enter') === 'sound' && window.Sound) { Sound.start(); syncSound(); }
         store.set('ao-entered', '1');
-        gsap.timeline()
-          .to('.gate__top', { yPercent: -120, opacity: 0, duration: 1, ease: 'power3.in' }, 0)
-          .to('.gate__bottom', { yPercent: 120, opacity: 0, duration: 1, ease: 'power3.in' }, 0)
-          .to('.gate__mid', { opacity: 0, scale: 0.9, duration: 0.6 }, 0)
-          .to(gate, { opacity: 0, duration: 0.8 }, 0.6)
-          .add(function () { heroIntro(); }, 0.7)
-          .add(function () { gate.remove(); ready(); });
-      }, { once: true });
+        function leave() {
+          gsap.timeline()
+            .to('.gate__top', { yPercent: -120, opacity: 0, duration: 1, ease: 'power3.in' }, 0)
+            .to('.gate__bottom', { yPercent: 120, opacity: 0, duration: 1, ease: 'power3.in' }, 0)
+            .to('.gate__mid', { opacity: 0, scale: 0.9, duration: 0.6 }, 0)
+            .to(gate, { opacity: 0, duration: 0.8 }, 0.6)
+            .add(function () { heroIntro(); }, 0.7)
+            .add(function () { if (jump) jump.kill(); stopBrain(); if (eyeCtl) eyeCtl.destroy(); gate.remove(); ready(); });
+        }
+        if (eyeCtl) eyeCtl.blink(b, leave); else leave();
+      });
     });
   }
 
