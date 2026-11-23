@@ -170,6 +170,27 @@
     var wrap = $('.bfinder'); if (!wrap) return;
     var input = $('input', wrap), btns = $$('.bf', wrap), chips = $$('.brand-list > li');
     var count = $('.bcount'), empty = $('.bempty'), cat = 'all', total = chips.length, t = null;
+    var list = $('.brand-list'), more = $('.bmore'), collapsed = true;
+    function refreshST() { if (window.ScrollTrigger) { clearTimeout(t); t = setTimeout(function () { ScrollTrigger.refresh(); }, 300); } }
+    function setCollapsed(c, animate) {
+      collapsed = c;
+      more.setAttribute('aria-expanded', String(!c));
+      more.textContent = c ? 'Show all ' + total + ' brands' : 'Show fewer brands';
+      var from = list.offsetHeight;
+      list.classList.toggle('is-collapsed', c);
+      if (animate && window.gsap && !reduce) {
+        var to = list.offsetHeight;
+        gsap.fromTo(list, { height: from }, { height: to, duration: 0.7, ease: 'power3.inOut', clearProps: 'height', onComplete: refreshST });
+      } else refreshST();
+    }
+    if (more) {
+      more.addEventListener('click', function () {
+        setCollapsed(!collapsed, true);
+        if (collapsed) { var top = wrap.getBoundingClientRect().top; if (top < 0) scrollToEl(wrap); }
+        if (window.Sound) Sound.tick();
+      });
+      list.addEventListener('focusin', function () { if (collapsed && !list.classList.contains('is-filtered')) setCollapsed(false, false); });
+    }
     function apply(animate) {
       var q = input.value.trim().toLowerCase(), shown = [];
       chips.forEach(function (li) {
@@ -177,12 +198,16 @@
         var ok = (cat === 'all' || (' ' + li.getAttribute('data-cats') + ' ').indexOf(' ' + cat + ' ') > -1) && (!q || name.indexOf(q) > -1);
         li.hidden = !ok; if (ok) shown.push(li);
       });
-      count.textContent = (q || cat !== 'all') ? 'Showing ' + shown.length + ' of ' + total + ' brands' : '';
+      var filtered = !!(q || cat !== 'all');
+      count.textContent = filtered ? 'Showing ' + shown.length + ' of ' + total + ' brands' : '';
       empty.hidden = shown.length > 0;
+      // a search or filter always shows every match; the collapsed view is only for the full list
+      list.classList.toggle('is-filtered', filtered);
+      if (more) more.hidden = filtered;
       if (animate && window.gsap && !reduce && shown.length) {
         gsap.fromTo(shown, { y: 14, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, stagger: { each: Math.min(0.02, 0.6 / shown.length) }, ease: 'power3.out', overwrite: true });
       }
-      if (window.ScrollTrigger) { clearTimeout(t); t = setTimeout(function () { ScrollTrigger.refresh(); }, 300); }
+      refreshST();
     }
     chips.forEach(function (li) { li.setAttribute('data-name', li.textContent.trim()); });
     btns.forEach(function (b) {
@@ -195,6 +220,63 @@
     });
     input.addEventListener('input', function () { apply(false); });
   })();
+
+  /* ---------- Carousels: swipe, drag or use the arrows ---------- */
+  $$('[data-rail]').forEach(function (track) {
+    var nav = document.createElement('div');
+    nav.className = 'rail__nav';
+    nav.innerHTML = '<span class="rail__bar" aria-hidden="true"><i></i></span>' +
+      '<button type="button" class="rail__btn" data-dir="-1" aria-label="Previous"><svg class="ic" aria-hidden="true"><use href="#i-arrow"/></svg></button>' +
+      '<button type="button" class="rail__btn" data-dir="1" aria-label="Next"><svg class="ic" aria-hidden="true"><use href="#i-arrow"/></svg></button>';
+    track.parentNode.insertBefore(nav, track.nextSibling);
+    var prev = nav.children[1], next = nav.children[2], bar = $('.rail__bar i', nav);
+    function sync() {
+      var max = track.scrollWidth - track.clientWidth;
+      var on = max > 4 && getComputedStyle(track).overflowX !== 'visible';
+      nav.hidden = !on;
+      if (!on) return;
+      prev.disabled = track.scrollLeft <= 2;
+      next.disabled = track.scrollLeft >= max - 2;
+      var vis = track.clientWidth / track.scrollWidth;
+      bar.style.width = (vis * 100) + '%';
+      bar.style.transform = 'translateX(' + ((track.scrollLeft / track.clientWidth) * 100) + '%)';
+    }
+    [prev, next].forEach(function (b) {
+      b.addEventListener('click', function () {
+        track.scrollBy({ left: Number(b.getAttribute('data-dir')) * track.clientWidth * 0.85, behavior: reduce ? 'auto' : 'smooth' });
+        if (window.Sound) Sound.tick();
+      });
+    });
+    track.addEventListener('scroll', sync, { passive: true });
+    window.addEventListener('resize', sync);
+    window.addEventListener('load', sync);
+    sync();
+    // mouse: drag to scroll (a drag never counts as a click)
+    if (finePointer) {
+      var down = false, moved = false, x0 = 0, s0 = 0;
+      track.addEventListener('pointerdown', function (e) {
+        if (e.button !== 0 || e.pointerType !== 'mouse' || nav.hidden) return;
+        down = true; moved = false; x0 = e.clientX; s0 = track.scrollLeft;
+      });
+      window.addEventListener('pointermove', function (e) {
+        if (!down) return;
+        var dx = e.clientX - x0;
+        if (!moved && Math.abs(dx) > 6) { moved = true; track.classList.add('is-dragging'); }
+        if (moved) track.scrollLeft = s0 - dx;
+      });
+      window.addEventListener('pointerup', function () {
+        if (!down) return;
+        down = false;
+        if (moved) {
+          track.classList.remove('is-dragging');
+          var stop = function (e) { e.preventDefault(); e.stopPropagation(); };
+          track.addEventListener('click', stop, { capture: true, once: true });
+          setTimeout(function () { track.removeEventListener('click', stop, true); }, 50);
+        }
+      });
+      track.addEventListener('dragstart', function (e) { e.preventDefault(); });
+    }
+  });
 
   /* ---------- Network: pick a market, the globe turns to it ---------- */
   var globe = null;
@@ -529,7 +611,7 @@
     cursor.classList.add('is-hidden');
     window.addEventListener('pointermove', function (e) { cx(e.clientX); cy(e.clientY); cursor.classList.remove('is-hidden'); }, { passive: true });
     document.addEventListener('pointerleave', function () { cursor.classList.add('is-hidden'); });
-    var LABELS = [['.flow__item', 'Open'], ['.case', 'Open'], ['.num', 'More'], ['.markets button', 'Focus'], ['.trail', 'Move'], ['.bcard', 'Tap'], ['.feature', 'Play'], ['.short', 'Play'], ['.me__shot', 'View'], ['.bl', 'Visit']];
+    var LABELS = [['.flow__item', 'Open'], ['.case', 'Open'], ['.num', 'More'], ['.markets button', 'Focus'], ['.trail', 'Move'], ['.bcard', 'Tap'], ['.feature', 'Play'], ['.short', 'Play'], ['.me__shot', 'Drag'], ['.bl', 'Visit']];
     document.addEventListener('pointerover', function (e) {
       var text = '';
       for (var i = 0; i < LABELS.length; i++) { if (e.target.closest(LABELS[i][0])) { text = LABELS[i][1]; break; } }
