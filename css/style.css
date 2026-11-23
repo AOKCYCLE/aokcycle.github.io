@@ -1365,6 +1365,48 @@ button.num { text-align: left; width: 100%; align-items: flex-start; justify-con
   html.has-cursor :is(.cursor, .cursor-dot)[data-mode="hidden"] { opacity: 0; }
 }
 
+
+/* ---------- "Discuss a project" badge: clear, premium, inviting ---------- */
+.orbit-badge {
+  width: 144px; height: 144px; color: var(--ink);
+  background: radial-gradient(circle at 50% 35%, rgba(44, 44, 40, .92), rgba(16, 16, 15, .94) 70%);
+  border: 1px solid rgba(236, 230, 216, .38);
+  box-shadow: 0 24px 60px -24px rgba(0, 0, 0, .95), inset 0 0 0 7px rgba(16, 16, 15, .7), inset 0 0 0 8px rgba(236, 230, 216, .12);
+  transition: border-color .5s, box-shadow .6s var(--ease);
+}
+.orbit-badge:hover { background: radial-gradient(circle at 50% 35%, rgba(52, 52, 47, .95), rgba(16, 16, 15, .96) 70%); color: var(--ink); border-color: var(--ink);
+  box-shadow: 0 24px 70px -20px rgba(0, 0, 0, .95), 0 0 40px -8px rgba(236, 230, 216, .35), inset 0 0 0 7px rgba(16, 16, 15, .7), inset 0 0 0 8px rgba(236, 230, 216, .2); }
+.orbit-badge .orbit-badge__ring { position: absolute; inset: 0; width: 100%; height: 100%; }
+.orbit-badge text, .orbit-badge:hover text { fill: var(--ink); font-family: var(--sans); font-size: 8.4px; font-weight: 600; letter-spacing: 0; }
+.orbit-badge__core {
+  position: relative; display: grid; place-items: center; width: 58px; height: 58px; border-radius: 50%;
+  background: var(--ink); color: var(--bg); box-shadow: 0 8px 24px -8px rgba(0, 0, 0, .8);
+  transition: transform .6s var(--ease), box-shadow .6s var(--ease);
+}
+.orbit-badge__core::before { content: ""; position: absolute; inset: -7px; border-radius: 50%; border: 1px solid var(--ink); animation: ring 2.4s ease-out infinite; pointer-events: none; }
+.orbit-badge__core .ic { position: static; width: 22px; height: 22px; transform: rotate(-45deg); transition: transform .55s var(--ease); }
+.orbit-badge:hover .orbit-badge__core { transform: scale(1.1); box-shadow: 0 10px 30px -6px rgba(236, 230, 216, .35); }
+.orbit-badge:hover .orbit-badge__core .ic { transform: rotate(0deg); }
+html.has-cursor .cursor[data-mode="dot"] { opacity: 0; }
+/* sits in the empty space right of the name, always inside the first screen */
+.orbit-badge { top: clamp(250px, 40vh, 380px); bottom: auto; right: clamp(20px, 3.2vw, 56px); }
+@media (max-width: 1000px) {
+  .orbit-badge { top: auto; bottom: 28px; right: auto; left: 24px; }
+}
+@media (max-width: 900px) {
+  .orbit-badge { width: 116px; height: 116px; }
+  .orbit-badge__core { width: 48px; height: 48px; }
+  .orbit-badge__core .ic { width: 18px; height: 18px; }
+}
+
+/* the enquiry form glows once when a "Discuss a project" button brings you there */
+.form.is-calling { animation: formCall 2.2s var(--ease); }
+@keyframes formCall {
+  0% { box-shadow: 0 0 0 0 rgba(236, 230, 216, 0); border-color: var(--line-2); }
+  25% { box-shadow: 0 0 0 6px rgba(236, 230, 216, .16), 0 0 60px -10px rgba(236, 230, 216, .3); border-color: var(--ink); }
+  100% { box-shadow: 0 0 0 0 rgba(236, 230, 216, 0); border-color: var(--line-2); }
+}
+
 /* =========================================================
    Reduced motion
    ========================================================= */

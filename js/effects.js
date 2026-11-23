@@ -110,7 +110,7 @@ window.Effects = (function () {
 
   /* ---------- Circular Text badge ---------- */
   function circularText() {
-    $$('.orbit-badge svg').forEach(function (svg) {
+    $$('.orbit-badge__ring').forEach(function (svg) {
       if (reduce || !G) return;
       var spin = G.to(svg, { rotation: 360, duration: 18, ease: 'none', repeat: -1, transformOrigin: '50% 50%' });
       var badge = svg.parentNode;

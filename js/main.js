@@ -343,6 +343,15 @@
     if (lenis) lenis.scrollTo(el, { offset: 0, duration: 1.6 });
     else el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' });
   }
+  function goToForm() {
+    var f = $('#contactForm'); if (!f) return;
+    if (lenis) lenis.scrollTo(f, { offset: -90, duration: 1.6 }); else f.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'center' });
+    setTimeout(function () {
+      var n = $('input[name="name"]', f); if (n) n.focus({ preventScroll: true });
+      f.classList.remove('is-calling'); void f.offsetWidth; f.classList.add('is-calling');
+      setTimeout(function () { f.classList.remove('is-calling'); }, 2200);
+    }, reduce ? 50 : 1650);
+  }
   function onBook(service) {
     pickService(service);
     scrollToEl($('#contact'));
@@ -380,6 +389,7 @@
       e.preventDefault();
       if (menu.classList.contains('is-open')) setMenu(false);
       if (id === '#story') { var y = el.offsetTop + window.innerHeight * 0.35; if (lenis) lenis.scrollTo(y, { duration: 1.8 }); else window.scrollTo({ top: y, behavior: 'smooth' }); return; }
+      if (a.hasAttribute('data-to-form')) { goToForm(); return; }
       scrollToEl(el);
     });
   });
@@ -636,6 +646,7 @@
     function modeFor(t) {
       if (!t || !t.closest) return ['default'];
       if (t.closest('dialog, input, textarea, select')) return ['hidden'];
+      if (t.closest('.orbit-badge')) return ['dot'];
       if (t.closest('.feature, .short')) return ['play', ICON_PLAY, 'Play'];
       if (t.closest('.me__grid')) return ['drag', ICON_DRAG, 'Drag'];
       var a = t.closest('a[href]');
