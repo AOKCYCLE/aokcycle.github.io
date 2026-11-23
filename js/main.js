@@ -399,7 +399,6 @@
       var el = document.querySelector(id); if (!el) return;
       e.preventDefault();
       if (menu.classList.contains('is-open')) setMenu(false);
-      if (id === '#story') { var y = el.offsetTop + window.innerHeight * 0.35; if (lenis) lenis.scrollTo(y, { duration: 1.8 }); else window.scrollTo({ top: y, behavior: 'smooth' }); return; }
       if (a.hasAttribute('data-to-form')) { goToForm(); return; }
       scrollToEl(el);
     });
@@ -527,22 +526,32 @@
       onUpdate: function (self) { stage.state.scroll = self.progress; }
     });
     ScrollTrigger.create({
-      trigger: '.manifesto', start: 'top top',
+      trigger: '.services', start: 'top top',
       onEnter: function () { stage.setVisible(false); },
       onLeaveBack: function () { stage.setVisible(true); }
     });
   }
   gsap.fromTo('.hero > *', { opacity: 1, y: 0 }, { opacity: 0, y: -60, ease: 'none', immediateRender: false, scrollTrigger: { trigger: '.hero', start: 'top top', end: '70% top', scrub: true } });
 
-  /* ---------- Chapter statements, one at a time ---------- */
-  var lines = $$('.chapter__line');
-  var ctl = gsap.timeline({ scrollTrigger: { trigger: '.chapter', start: 'top top', end: 'bottom bottom', scrub: 0.6 } });
-  lines.forEach(function (line, i) {
-    ctl.fromTo(line, { opacity: 0, filter: 'blur(14px)', letterSpacing: '0.22em', scale: 1.04 },
-      { opacity: 1, filter: 'blur(0px)', letterSpacing: '0.015em', scale: 1, duration: 1, ease: 'power2.out' });
-    ctl.to(line, { opacity: 1, duration: 0.8 });
-    if (i < lines.length - 1) ctl.to(line, { opacity: 0, filter: 'blur(10px)', y: -30, duration: 0.8, ease: 'power2.in' });
-  });
+  /* ---------- Statements band: the four lines rotate while it is on screen ---------- */
+  var lines = $$('.chapter__line'), lineIdx = 0, lineTimer = 0;
+  if (lines.length) {
+    gsap.set(lines, { opacity: 0 });
+    var showLine = function (i, first) {
+      gsap.fromTo(lines[i], { opacity: 0, filter: 'blur(14px)', letterSpacing: '0.2em', y: 18 },
+        { opacity: 1, filter: 'blur(0px)', letterSpacing: '0.015em', y: 0, duration: 1.1, ease: 'power3.out', delay: first ? 0 : 0.45, clearProps: 'filter' });
+    };
+    showLine(0, true);
+    var nextLine = function () {
+      gsap.to(lines[lineIdx], { opacity: 0, filter: 'blur(10px)', y: -18, duration: 0.6, ease: 'power2.in' });
+      lineIdx = (lineIdx + 1) % lines.length;
+      showLine(lineIdx);
+    };
+    ScrollTrigger.create({
+      trigger: '.chapter', start: 'top 90%', end: 'bottom 10%',
+      onToggle: function (self) { clearInterval(lineTimer); if (self.isActive) lineTimer = setInterval(nextLine, 3200); }
+    });
+  }
 
   /* ---------- Masked heading reveals ---------- */
   if (window.SplitText) {
@@ -669,7 +678,6 @@
       if (t.closest('dialog, input, textarea, select')) return ['hidden'];
       if (t.closest('.orbit-badge, .eye-btn, .float-cta')) return ['dot'];
       if (t.closest('.feature, .short')) return ['play', ICON_PLAY, 'Play'];
-      if (t.closest('.me__grid')) return ['drag', ICON_DRAG, 'Drag'];
       var a = t.closest('a[href]');
       if (a) {
         var h = (a.getAttribute('href') || '') + ' ' + (a.getAttribute('data-social') || '');
