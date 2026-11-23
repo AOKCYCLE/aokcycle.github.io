@@ -348,9 +348,9 @@ window.Effects = (function () {
         if (tl) tl.kill();
         G.set(cells, { opacity: 0 });
         tl = G.timeline()
-          .to(cells, { opacity: 1, duration: 0.01, stagger: { each: 0.004, from: 'random' } })
+          .to(cells, { opacity: 1, duration: 0.01, stagger: { each: 0.0016, from: 'random' } })
           .add(function () { card.classList.toggle('is-flipped', on); })
-          .to(cells, { opacity: 0, duration: 0.01, stagger: { each: 0.004, from: 'random' } }, '+=0.05')
+          .to(cells, { opacity: 0, duration: 0.01, stagger: { each: 0.0016, from: 'random' } }, '+=0.02')
           .add(function () { G.set(cells, { opacity: 0 }); });
         if (window.Sound) Sound.tick();
       }

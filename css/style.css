@@ -1297,6 +1297,74 @@ button.num { text-align: left; width: 100%; align-items: flex-start; justify-con
   .cstep__n { font-size: 1.1rem; }
 }
 
+
+/* ---------- Bento drawings sit in the flow: text always starts below them ---------- */
+.bcard .bcard__viz { position: relative; inset: auto; width: 100%; height: 84px; flex: none; margin-bottom: auto; }
+.bcard .bcard__viz.viz-orbit, .bcard .bcard__viz.viz-ring { width: 96px; height: 96px; align-self: flex-end; margin-right: .5rem; }
+.bcard .bcard__viz + .label { margin-top: 1.2rem; }
+@media (max-width: 640px) {
+  .bcard .bcard__viz { height: 60px; }
+  .bcard .bcard__viz.viz-orbit, .bcard .bcard__viz.viz-ring { width: 74px; height: 74px; margin-right: .4rem; }
+  .bcard:has(.viz-orbit), .bcard:has(.viz-ring) { padding-top: 1.2rem; }
+  .viz-ring b { font-size: 1.25rem; }
+}
+
+/* ---------- Living cursor: it changes with the area it is over ---------- */
+.cursor-dot { display: none; }
+@media (hover: hover) and (pointer: fine) {
+  html.has-cursor, html.has-cursor * { cursor: none !important; }
+  html.has-cursor :is(input, textarea, select) { cursor: text !important; }
+  html.has-cursor :is(dialog, dialog *) { cursor: auto !important; }
+  html.has-cursor dialog :is(a, button) { cursor: pointer !important; }
+  html.has-cursor .cursor {
+    display: grid; grid-auto-flow: row; place-items: center; align-content: center; gap: .2rem;
+    width: 34px; height: 34px; margin: 0; border-radius: 50%;
+    background: transparent; border: 1px solid rgba(236, 230, 216, .6); mix-blend-mode: difference; box-shadow: none;
+    transition: width .45s var(--ease), height .45s var(--ease), margin .45s var(--ease), border-radius .45s var(--ease),
+      background .35s, border-color .35s, box-shadow .35s, opacity .3s;
+  }
+  html.has-cursor .cursor-dot {
+    display: block; position: fixed; top: 0; left: 0; z-index: 401; width: 6px; height: 6px; border-radius: 50%;
+    background: var(--ink); mix-blend-mode: difference; pointer-events: none; transition: opacity .25s, width .3s, height .3s, background .3s;
+  }
+  html.has-cursor .cursor.is-hidden, html.has-cursor .cursor-dot.is-hidden { opacity: 0; }
+  .cursor__icon { display: none; font-style: normal; color: var(--ink); font-size: 1.05rem; line-height: 0; gap: 2px; }
+  .cursor__icon .ic--ne { transform: rotate(-45deg); }
+  .cursor__icon .ic--back { transform: rotate(180deg); }
+  html.has-cursor .cursor .cursor__label { color: var(--ink); opacity: 0; font-size: .58rem; letter-spacing: .22em; line-height: 1; }
+
+  /* links & buttons: an ivory lens that inverts what is under it */
+  html.has-cursor .cursor[data-mode="link"] { width: 58px; height: 58px; background: var(--ink); border-color: var(--ink); }
+  /* big headings: a large lens */
+  html.has-cursor .cursor[data-mode="lens"] { width: 150px; height: 150px; background: var(--ink); border-color: var(--ink); }
+  /* reading text: a slim caret */
+  html.has-cursor .cursor[data-mode="text"] { width: 2px; height: 26px; border-radius: 2px; background: var(--ink); border-color: transparent; }
+  /* videos: a play badge */
+  html.has-cursor .cursor[data-mode="play"] { width: 92px; height: 92px; mix-blend-mode: normal; background: rgba(20, 20, 19, .86); border-color: var(--ink); }
+  /* photo carousel: drag badge */
+  html.has-cursor .cursor[data-mode="drag"] { width: 92px; height: 92px; mix-blend-mode: normal; background: rgba(20, 20, 19, .86); border-color: var(--ink); }
+  /* cards: a small arrow badge beside the pointer, never over the text */
+  html.has-cursor .cursor[data-mode="open"] { width: 54px; height: 54px; background: transparent; border-color: var(--ink); }
+  html.has-cursor .cursor[data-mode="open"] .cursor__icon { position: absolute; top: -9px; right: -9px; width: 20px; height: 20px; border-radius: 50%; background: var(--ink); color: var(--bg); font-size: .62rem; align-items: center; justify-content: center; }
+  /* globe & markets: a spinning orbit */
+  html.has-cursor .cursor[data-mode="globe"] { width: 78px; height: 78px; border-color: transparent; }
+  html.has-cursor .cursor[data-mode="globe"]::before { content: ""; position: absolute; inset: 0; border-radius: 50%; border: 1px dashed var(--ink); animation: spin 5s linear infinite; }
+  html.has-cursor .cursor[data-mode="globe"]::after { content: ""; position: absolute; width: 7px; height: 7px; top: -3px; left: calc(50% - 3px); border-radius: 50%; background: var(--ink); }
+  /* image trail: a crosshair */
+  html.has-cursor .cursor[data-mode="cross"] { width: 64px; height: 64px; border-color: var(--ink); }
+  html.has-cursor .cursor[data-mode="cross"]::before, html.has-cursor .cursor[data-mode="cross"]::after { content: ""; position: absolute; background: var(--ink); }
+  html.has-cursor .cursor[data-mode="cross"]::before { left: 50%; top: -12px; bottom: -12px; width: 1px; }
+  html.has-cursor .cursor[data-mode="cross"]::after { top: 50%; left: -12px; right: -12px; height: 1px; }
+  /* social links: their brand colour, glowing */
+  html.has-cursor .cursor[data-mode="brand"] { width: 62px; height: 62px; mix-blend-mode: normal; border: 1.5px solid var(--brand); box-shadow: 0 0 28px -4px var(--brand), inset 0 0 18px -8px var(--brand); }
+  html.has-cursor .cursor-dot[data-mode="brand"] { background: var(--brand); mix-blend-mode: normal; width: 8px; height: 8px; }
+  /* what shows inside */
+  html.has-cursor .cursor:is([data-mode="play"], [data-mode="drag"], [data-mode="open"]) .cursor__icon { display: inline-flex; }
+  html.has-cursor .cursor:is([data-mode="play"], [data-mode="drag"]) .cursor__label { opacity: 1; }
+  html.has-cursor .cursor-dot:is([data-mode="link"], [data-mode="lens"], [data-mode="text"], [data-mode="play"], [data-mode="drag"]) { opacity: 0; }
+  html.has-cursor :is(.cursor, .cursor-dot)[data-mode="hidden"] { opacity: 0; }
+}
+
 /* =========================================================
    Reduced motion
    ========================================================= */

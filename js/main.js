@@ -604,20 +604,61 @@
     ScrollTrigger.create({ trigger: sec, start: 'top 50%', end: 'bottom 50%', onToggle: function (self) { a.classList.toggle('is-active', self.isActive); } });
   });
 
-  /* ---------- Desktop polish: cursor with labels + magnetic buttons ---------- */
+  /* ---------- Living cursor: it changes with the area you are in + magnetic buttons ---------- */
   if (finePointer) {
-    var cursor = $('.cursor'), label = $('.cursor__label');
-    var cx = gsap.quickTo(cursor, 'x', { duration: 0.25, ease: 'power3' }), cy = gsap.quickTo(cursor, 'y', { duration: 0.25, ease: 'power3' });
-    cursor.classList.add('is-hidden');
-    window.addEventListener('pointermove', function (e) { cx(e.clientX); cy(e.clientY); cursor.classList.remove('is-hidden'); }, { passive: true });
-    document.addEventListener('pointerleave', function () { cursor.classList.add('is-hidden'); });
-    var LABELS = [['.flow__item', 'Open'], ['.markets button', 'Focus'], ['.trail', 'Move'], ['.bcard', 'Tap'], ['.feature', 'Play'], ['.short', 'Play'], ['.me__shot', 'Drag']];
+    var ring = $('.cursor');
+    ring.innerHTML = '<i class="cursor__icon"></i><span class="cursor__label"></span>';
+    var cIcon = $('.cursor__icon', ring), cLabel = $('.cursor__label', ring);
+    var dot = document.createElement('div');
+    dot.className = 'cursor-dot'; dot.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(dot);
+    document.documentElement.classList.add('has-cursor');
+    gsap.set([ring, dot], { xPercent: -50, yPercent: -50 });
+    var rx = gsap.quickTo(ring, 'x', { duration: 0.5, ease: 'power3' }), ry = gsap.quickTo(ring, 'y', { duration: 0.5, ease: 'power3' });
+    var dx = gsap.quickTo(dot, 'x', { duration: 0.08, ease: 'power2' }), dy = gsap.quickTo(dot, 'y', { duration: 0.08, ease: 'power2' });
+    var placed = false;
+    var hideCursor = function (on) { ring.classList.toggle('is-hidden', on); dot.classList.toggle('is-hidden', on); };
+    hideCursor(true);
+    window.addEventListener('pointermove', function (e) {
+      if (e.pointerType && e.pointerType !== 'mouse') return;
+      if (!placed) { gsap.set([ring, dot], { x: e.clientX, y: e.clientY }); placed = true; }
+      rx(e.clientX); ry(e.clientY); dx(e.clientX); dy(e.clientY);
+      hideCursor(false);
+    }, { passive: true });
+    document.addEventListener('mouseout', function (e) { if (!e.relatedTarget) hideCursor(true); });
+    window.addEventListener('pointerdown', function () { gsap.to(ring, { scale: 0.78, duration: 0.15, overwrite: 'auto' }); });
+    window.addEventListener('pointerup', function () { gsap.to(ring, { scale: 1, duration: 0.6, ease: 'elastic.out(1, 0.45)', overwrite: 'auto' }); });
+
+    var ICON_PLAY = '<svg class="ic"><use href="#i-play"/></svg>';
+    var ICON_OPEN = '<svg class="ic ic--ne"><use href="#i-arrow"/></svg>';
+    var ICON_DRAG = '<svg class="ic ic--back"><use href="#i-arrow"/></svg><svg class="ic"><use href="#i-arrow"/></svg>';
+    var BRANDS = [['youtube', '#ff0033'], ['tiktok', '#25f4ee'], ['instagram', '#e1306c'], ['linkedin', '#4c9be8'], ['wa.me', '#25d366'], ['whatsapp', '#25d366']];
+    function modeFor(t) {
+      if (!t || !t.closest) return ['default'];
+      if (t.closest('dialog, input, textarea, select')) return ['hidden'];
+      if (t.closest('.feature, .short')) return ['play', ICON_PLAY, 'Play'];
+      if (t.closest('.me__grid')) return ['drag', ICON_DRAG, 'Drag'];
+      var a = t.closest('a[href]');
+      if (a) {
+        var h = (a.getAttribute('href') || '') + ' ' + (a.getAttribute('data-social') || '');
+        for (var i = 0; i < BRANDS.length; i++) if (h.indexOf(BRANDS[i][0]) > -1) return ['brand', '', '', BRANDS[i][1]];
+      }
+      if (t.closest('.case, .flow__item, .num, .bl, .plan')) return ['open', ICON_OPEN];
+      if (t.closest('.reach__globe, .markets')) return ['globe'];
+      if (t.closest('.trail')) return ['cross'];
+      if (t.closest('a, button, summary, label, [role="button"]')) return ['link'];
+      if (t.closest('.hero__name, .head__title, .chapter__line, .manifesto__title, .contact__title, .footer__name, .gate__top, .gate__bottom')) return ['lens'];
+      if (t.closest('p, li, dd, blockquote')) return ['text'];
+      return ['default'];
+    }
+    var curMode = '';
     document.addEventListener('pointerover', function (e) {
-      var text = '';
-      for (var i = 0; i < LABELS.length; i++) { if (e.target.closest(LABELS[i][0])) { text = LABELS[i][1]; break; } }
-      label.textContent = text;
-      cursor.classList.toggle('is-label', !!text);
-      cursor.classList.toggle('is-hover', !text && !!e.target.closest('a, button, summary, label'));
+      var m = modeFor(e.target), key = m.join('|');
+      if (key === curMode) return;
+      curMode = key;
+      ring.setAttribute('data-mode', m[0]); dot.setAttribute('data-mode', m[0]);
+      cIcon.innerHTML = m[1] || ''; cLabel.textContent = m[2] || '';
+      if (m[3]) { ring.style.setProperty('--brand', m[3]); dot.style.setProperty('--brand', m[3]); }
     });
     $$('.magnetic').forEach(function (el) {
       var mx = gsap.quickTo(el, 'x', { duration: 0.6, ease: 'power3' }), my = gsap.quickTo(el, 'y', { duration: 0.6, ease: 'power3' });
