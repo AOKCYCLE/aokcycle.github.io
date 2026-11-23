@@ -11,6 +11,11 @@ window.Effects = (function () {
   var $$ = function (s, c) { return Array.prototype.slice.call((c || document).querySelectorAll(s)); };
   var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var fine = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+  // what the visitor is really using right now (a touchscreen laptop can still have a mouse)
+  var lastPointer = fine ? 'mouse' : 'touch';
+  var isMouse = function (e) { return e.pointerType === 'mouse' || e.pointerType === 'pen'; };
+  document.addEventListener('pointerdown', function (e) { lastPointer = e.pointerType || lastPointer; }, true);
+  document.addEventListener('pointermove', function (e) { if (isMouse(e)) lastPointer = 'mouse'; }, { capture: true, passive: true });
   var G = window.gsap;
 
   /* ---------- Animated line-art library (160 × 100) ---------- */
@@ -154,10 +159,8 @@ window.Effects = (function () {
         item.classList.remove('is-on');
       }
       item._show = show; item._hide = hide;
-      if (fine) {
-        item.addEventListener('mouseenter', function (e) { show(edge(e)); });
-        item.addEventListener('mouseleave', function (e) { hide(edge(e)); });
-      }
+      item.addEventListener('pointerenter', function (e) { if (isMouse(e)) show(edge(e)); });
+      item.addEventListener('pointerleave', function (e) { if (isMouse(e)) hide(edge(e)); });
       $('.flow__link', item).addEventListener('click', function () {
         var tpl = $('.flow__detail', item);
         openDrawer(tpl ? tpl.innerHTML : '', [], item.getAttribute('data-service'));
@@ -283,7 +286,7 @@ window.Effects = (function () {
         var b = card.getBoundingClientRect();
         card.style.setProperty('--mx', (e.clientX - b.left) + 'px');
         card.style.setProperty('--my', (e.clientY - b.top) + 'px');
-        if (G && fine && !reduce) {
+        if (G && isMouse(e) && !reduce) {
           var px = (e.clientX - b.left) / b.width - 0.5, py = (e.clientY - b.top) / b.height - 0.5;
           G.to(card, { rotateY: px * 7, rotateX: -py * 7, duration: 0.5, ease: 'power3.out', transformPerspective: 900 });
         }
@@ -348,15 +351,13 @@ window.Effects = (function () {
       var id = card.getAttribute('data-case');
       card.setAttribute('role', 'button');
       card.setAttribute('aria-label', ($('h3', card) || card).textContent.trim() + ', open the case study');
-      if (fine) {
-        card.addEventListener('mouseenter', function () { flip(true); });
-        card.addEventListener('mouseleave', function () { flip(false); });
-      }
+      card.addEventListener('pointerenter', function (e) { if (isMouse(e)) flip(true); });
+      card.addEventListener('pointerleave', function (e) { if (isMouse(e)) flip(false); });
       card.addEventListener('focus', function () { flip(true); });
       card.addEventListener('blur', function () { flip(false); });
       // mouse: click opens the case; touch: first tap reveals the result, second tap opens
       card.addEventListener('click', function () {
-        if (!fine && !active) { flip(true); return; }
+        if (lastPointer === 'touch' && !active) { flip(true); return; }
         openCase(id);
       });
       card.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openCase(id); } });
@@ -514,17 +515,16 @@ window.Effects = (function () {
       }
       function on() { fit(); li.classList.add('is-logo'); if (window.Sound) Sound.tick(); }
       function off() { li.classList.remove('is-logo'); }
-      if (fine) { li.addEventListener('pointerenter', on); li.addEventListener('pointerleave', off); }
-      else {
-        // touch: first tap draws the logo, second tap opens the official website
-        li.addEventListener('click', function (e) {
-          if (!li.classList.contains('is-logo')) {
-            e.preventDefault();
-            all.forEach(function (o) { if (o !== li) o.classList.remove('is-logo'); });
-            on();
-          }
-        });
-      }
+      li.addEventListener('pointerenter', function (e) { if (isMouse(e)) on(); });
+      li.addEventListener('pointerleave', function (e) { if (isMouse(e)) off(); });
+      // touch: first tap draws the logo, second tap opens the official website
+      li.addEventListener('click', function (e) {
+        if (lastPointer === 'touch' && !li.classList.contains('is-logo')) {
+          e.preventDefault();
+          all.forEach(function (o) { if (o !== li) o.classList.remove('is-logo'); });
+          on();
+        }
+      });
     });
   }
 

@@ -255,7 +255,7 @@
     window.addEventListener('load', sync);
     sync();
     // mouse: drag to scroll (a drag never counts as a click)
-    if (finePointer) {
+    {
       var down = false, moved = false, x0 = 0, s0 = 0;
       track.addEventListener('pointerdown', function (e) {
         if (e.button !== 0 || e.pointerType !== 'mouse' || nav.hidden) return;
@@ -290,7 +290,7 @@
     }
     b.setAttribute('aria-pressed', 'false');
     b.addEventListener('click', go);
-    if (finePointer) b.addEventListener('pointerenter', go);
+    b.addEventListener('pointerenter', function (e) { if (e.pointerType === 'mouse') go(); });
   });
 
   /* ---------- Optional analytics (only when an ID is set in config.js) ---------- */
@@ -442,11 +442,11 @@
     // a slow wave runs through the letters
     gsap.to(heroSplit.chars, { y: -10, duration: 1.8, ease: 'sine.inOut', yoyo: true, repeat: -1, stagger: { each: 0.14, from: 'start' } });
     // the whole name tilts a little toward the cursor
-    if (finePointer) {
+    {
       var rx = gsap.quickTo(heroName, 'rotationX', { duration: 1.2, ease: 'power3' }), ry = gsap.quickTo(heroName, 'rotationY', { duration: 1.2, ease: 'power3' });
       gsap.set(heroName, { transformPerspective: 900 });
       window.addEventListener('pointermove', function (e) {
-        if (window.scrollY > window.innerHeight) return;
+        if (e.pointerType !== 'mouse' || window.scrollY > window.innerHeight) return;
         ry((e.clientX / window.innerWidth - 0.5) * 10);
         rx(-(e.clientY / window.innerHeight - 0.5) * 8);
       }, { passive: true });
@@ -644,8 +644,9 @@
     ScrollTrigger.create({ trigger: sec, start: 'top 50%', end: 'bottom 50%', onToggle: function (self) { a.classList.toggle('is-active', self.isActive); } });
   });
 
-  /* ---------- Living cursor: it changes with the area you are in + magnetic buttons ---------- */
-  if (finePointer) {
+  /* ---------- Living cursor: it changes with the area you are in + magnetic buttons ----------
+     Starts straight away on mouse devices, or on the first real mouse move anywhere else. */
+  var initCursor = function () {
     var ring = $('.cursor');
     ring.innerHTML = '<i class="cursor__icon"></i><span class="cursor__label"></span>';
     var cIcon = $('.cursor__icon', ring), cLabel = $('.cursor__label', ring);
@@ -708,7 +709,13 @@
       });
       el.addEventListener('pointerleave', function () { gsap.to(el, { x: 0, y: 0, duration: 0.9, ease: 'elastic.out(1, 0.4)' }); });
     });
-  }
+  };
+  if (finePointer) initCursor();
+  else window.addEventListener('pointermove', function firstMouse(e) {
+    if (e.pointerType !== 'mouse') return;
+    window.removeEventListener('pointermove', firstMouse);
+    initCursor();
+  }, { passive: true });
 
   window.addEventListener('load', function () { ScrollTrigger.refresh(); });
 })();

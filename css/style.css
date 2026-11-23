@@ -1311,7 +1311,8 @@ button.num { text-align: left; width: 100%; align-items: flex-start; justify-con
 
 /* ---------- Living cursor: it changes with the area it is over ---------- */
 .cursor-dot { display: none; }
-@media (hover: hover) and (pointer: fine) {
+@media all {
+  html.has-cursor .cursor { position: fixed; top: 0; left: 0; z-index: 400; pointer-events: none; }
   html.has-cursor, html.has-cursor * { cursor: none !important; }
   html.has-cursor :is(input, textarea, select) { cursor: text !important; }
   html.has-cursor :is(dialog, dialog *) { cursor: auto !important; }
@@ -1838,6 +1839,203 @@ h2, h3 { line-height: 1.1; }
   /* form: shorter */
   .form__row--pair, .form__body > .form__row:nth-of-type(2) { grid-template-columns: 1fr 1fr; gap: .8rem; }
   .form__actions > * { flex: 1 1 0; padding-left: .6rem; padding-right: .6rem; font-size: .66rem; letter-spacing: .12em; }
+}
+
+
+/* =========================================================
+   Tightest layout (pass 5): spacing halved again, headings ~25% smaller
+   ========================================================= */
+.section { padding: clamp(18px, 2.2vw, 28px) 0; }
+.manifesto { padding-top: clamp(18px, 2.2vw, 28px); }
+.head { margin-bottom: clamp(10px, 1.2vw, 16px); }
+.head .label { margin-bottom: .4rem; }
+.head__title { font-size: clamp(1.4rem, 2.8vw, 2.5rem); line-height: 1.1; }
+.head__intro { font-size: .9rem; }
+
+/* hero */
+.hero { min-height: 88vh; min-height: 88svh; }
+.hero__name { font-size: clamp(2.6rem, 9.4vw, 8.6rem); line-height: .9; }
+.hero__line { font-size: clamp(1rem, 1.6vw, 1.35rem); margin-top: .8rem; }
+.hero__sub { margin-top: .6rem; font-size: .92rem; }
+.hero__caps { margin-top: .8rem; }
+.hero__ctas { margin-top: 1rem; }
+.kicker { margin-bottom: 1rem; }
+
+/* statements + marquee */
+.chapter--band .chapter__pin { height: clamp(140px, 20vh, 200px); }
+.chapter--band .chapter__line { font-size: clamp(1.25rem, 2.7vw, 2.5rem); }
+.marquee { padding: 12px 0 14px; }
+.marquee .label { margin-bottom: .5rem; }
+.marquee__row { font-size: clamp(1rem, 1.8vw, 1.6rem); }
+
+/* capabilities */
+.flow__link { padding: clamp(.55rem, 1vw, .8rem) var(--gutter); }
+.flow__title { font-size: clamp(1.05rem, 1.9vw, 1.65rem); }
+
+/* proof */
+.legend { margin-bottom: .5rem; }
+.num { min-height: 104px; padding: .8rem .9rem; gap: .45rem; }
+.num b { font-size: clamp(1.5rem, 2.3vw, 2.1rem); }
+
+/* cases */
+.case { aspect-ratio: 2 / 1; }
+.case__cap h3 { font-size: clamp(1rem, 1.3vw, 1.15rem); }
+.case__cap { bottom: .8rem; }
+.case__back { padding: .9rem 1.1rem; gap: .35rem; }
+.case__back b { font-size: clamp(1.2rem, 1.7vw, 1.5rem); }
+.case__back p { font-size: .84rem; }
+.cta-band { margin-top: 12px; padding: .8rem 1.1rem; }
+.cta-band__title { font-size: clamp(1.05rem, 1.5vw, 1.3rem); }
+
+/* network */
+.reach__globe { max-width: 300px; }
+.reach__intro { margin-top: .5rem; }
+.markets { margin-top: .6rem; }
+.markets button { padding: .4rem 0; }
+.flowline { margin-top: 14px; }
+.flowline li { padding: .7rem .9rem 0 0; }
+.flowline li + li { padding-left: .9rem; }
+.flowline h3 { font-size: 1rem; }
+.flowline p { font-size: .84rem; }
+.fineprint { margin-top: .5rem; font-size: .74rem; }
+
+/* why partners choose me */
+.bento--four .bcard { padding: .9rem 1rem; }
+.bento--four .bcard .bcard__viz { height: 44px; }
+.bento--four .bcard .bcard__viz.viz-ring { width: 52px; height: 52px; }
+.bento--four .bcard .bcard__viz + .label { margin-top: .5rem; }
+.bcard h3 { font-size: clamp(1.05rem, 1.4vw, 1.25rem); }
+
+/* brands */
+.premium { margin-bottom: 10px; }
+.premium li { min-height: 44px; }
+.premium .bl__link { padding: .55rem .5rem; }
+.bfinder { margin-bottom: .3rem; }
+.brands__kicker { margin-bottom: .45rem; }
+
+/* trail */
+.trail { height: 30vh; height: 30svh; min-height: 220px; }
+.trail__text h2 { font-size: clamp(1.5rem, 4vw, 3.6rem); }
+.trail__text .label { margin-bottom: .5rem; }
+.trail__hint { margin-top: .6rem; }
+
+/* founder */
+.manifesto__visual { max-width: 260px; }
+.manifesto__title { font-size: clamp(1.6rem, 3.3vw, 2.8rem); margin: .4rem 0 .6rem; }
+.manifesto__lead, .agent__lead { font-size: clamp(1rem, 1.3vw, 1.2rem); margin-bottom: .5rem; }
+.facts { margin-top: .7rem; }
+.facts div { padding: .45rem .8rem .45rem 0; }
+.founder__more { margin-top: 14px; }
+.career li { padding: .4rem 0 .45rem; }
+.journey-line { margin-top: 8px; }
+.journey-line svg { max-width: 420px; }
+
+/* off the record: square tiles, one strip */
+.me__shot { aspect-ratio: 1 / 1; }
+
+/* how we work + engagements */
+.steps li { padding: .7rem .9rem 0 0; }
+.steps li + li { padding-left: .9rem; }
+.steps span { font-size: 1.2rem; margin-bottom: .2rem; }
+.steps h3 { font-size: 1rem; }
+.steps p { font-size: .86rem; }
+.engage { margin-top: 14px; }
+.engage__head { margin-bottom: .6rem; }
+.engage__title { font-size: clamp(1.05rem, 1.5vw, 1.3rem); }
+.plan { padding: .85rem 1rem; gap: .35rem; }
+.plan h3 { font-size: clamp(1rem, 1.3vw, 1.15rem); }
+.plan > p:not(.label) { font-size: .86rem; }
+
+/* faq */
+.qa summary { padding: .6rem 0; }
+.qa summary .display { font-size: clamp(.92rem, 1.1vw, 1.05rem); }
+.qa__body p { padding-bottom: .6rem; font-size: .9rem; }
+
+/* kosharicode */
+.agent__log { min-height: 140px; padding-top: .9rem; gap: .6rem; }
+.agent__ctas { margin-top: .8rem; }
+.agent__text { margin-top: .4rem; }
+
+/* the koshari files */
+.watch__grid .shorts { gap: 6px; }
+.watch__grid .short { grid-template-columns: 54px 1fr 30px; padding: 4px 8px 4px 4px; }
+.watch__grid .short img { width: 54px; height: 54px; }
+.watch__grid .short span { font-size: .82rem; }
+.watch__grid .short > i { width: 30px; height: 30px; }
+.media-row { margin-top: 14px; }
+.channel { padding: .65rem .7rem; }
+.channel > i { font-size: 1.05rem; margin-bottom: .25rem; }
+.channel b { font-size: .95rem; }
+
+/* contact */
+.contact__title { font-size: clamp(1.5rem, 2.8vw, 2.4rem); margin: .4rem 0 .6rem; }
+.contact__me { margin-bottom: .6rem; }
+.contact__me img { width: 52px; height: 52px; }
+.contact__intro { margin-top: .5rem; font-size: .92rem; }
+.contact__list { margin-top: .6rem; }
+.contact__list li { padding: .4rem 0; }
+.form { padding: clamp(.9rem, 1.6vw, 1.3rem); }
+.field { margin-bottom: .55rem; }
+.field input, .field textarea { padding: 1rem 0 .35rem; }
+.pills { margin: 0 0 .6rem; }
+.pills legend { margin-bottom: .35rem; }
+.form__note { margin-top: .7rem; }
+
+/* footer */
+.footer { padding: clamp(20px, 2.4vw, 32px) 0 18px; }
+.footer__inner { gap: .5rem; }
+.footer__emblem { width: 38px; height: 38px; }
+.footer__name { font-size: clamp(1.4rem, 2.8vw, 2.2rem); }
+.footer__copy { margin-top: .4rem; }
+
+@media (max-width: 640px) {
+  .section { padding: 14px 0; }
+  .manifesto { padding-top: 14px; }
+  .head { margin-bottom: 8px; }
+  .head__title { font-size: 1.35rem; }
+  .hero__name { font-size: clamp(2.4rem, 12vw, 3.2rem); }
+  .chapter--band .chapter__pin { height: 140px; }
+  .chapter--band .chapter__line { font-size: 1.2rem; }
+  .manifesto__title { font-size: 1.7rem; min-height: 96px; }
+  .manifesto__visual { width: 92px; }
+  .manifesto__text .label, .manifesto__title { padding-right: 108px; }
+  .num { min-height: 84px; }
+  .num b { font-size: 1.35rem; }
+  .case { aspect-ratio: 4 / 3; }
+  .reach__globe { max-width: 190px; }
+  .trail { height: 26svh; min-height: 200px; }
+  .trail__text h2 { font-size: 1.35rem; }
+  .contact__title { font-size: 1.45rem; }
+  .footer__name { font-size: 1.4rem; }
+  .bento--four .bcard .bcard__viz { height: 36px; }
+  .watch__grid .feature { aspect-ratio: 16 / 9; }
+}
+
+
+/* ---------- Tightest layout, phones (pass 6): swipe rows instead of tall stacks ---------- */
+@media (max-width: 640px) {
+  .hero { min-height: 78vh; min-height: 78svh; }
+  /* shared swipe-row look */
+  .career ol, .flowline, .channels, .form .pills { display: flex; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; scroll-snap-type: x proximity; }
+  .career ol::-webkit-scrollbar, .flowline::-webkit-scrollbar, .channels::-webkit-scrollbar, .form .pills::-webkit-scrollbar { display: none; }
+  /* career timeline: cards */
+  .career ol { gap: 8px; margin: 0 calc(var(--gutter) * -1); padding: 0 var(--gutter); scroll-padding: 0 var(--gutter); }
+  .career li { flex: 0 0 76%; scroll-snap-align: start; border: 1px solid var(--line); border-top: 1px solid var(--line-2); padding: .6rem .7rem; }
+  /* network steps */
+  .flowline { gap: 8px; margin: 12px calc(var(--gutter) * -1) 0; padding: 0 var(--gutter); border-top: 0; }
+  .flowline li, .flowline li + li, .flowline li:nth-child(even), .flowline li:nth-child(n+3) { flex: 0 0 70%; scroll-snap-align: start; padding: .7rem .8rem .5rem; border: 1px solid var(--line); border-top: 1px solid var(--line-2); }
+  /* social channels */
+  .channels { gap: 0; border-left: 0; margin: 0 calc(var(--gutter) * -1); padding: 0 var(--gutter); }
+  .channel { flex: 0 0 118px; border-left: 1px solid var(--line); }
+  /* form options: one row each */
+  .form .pills { gap: .35rem; margin-right: -1rem; padding-right: 1rem; }
+  .form .pills { align-items: center; }
+  .form .pills legend { flex: 0 0 4.6rem; margin: 0 .3rem 0 0; font-size: .55rem; letter-spacing: .14em; line-height: 1.35; }
+  .form__actions > * { white-space: normal; line-height: 1.25; text-align: center; letter-spacing: .08em; }
+  .pills label { flex: none; }
+  /* kosharicode buttons side by side */
+  .agent__ctas { flex-wrap: nowrap; gap: .5rem; }
+  .agent__ctas .frame-btn { flex: 1 1 0; padding: .8rem .6rem; font-size: .62rem; letter-spacing: .12em; }
 }
 
 /* =========================================================
