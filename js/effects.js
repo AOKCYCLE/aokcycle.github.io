@@ -64,6 +64,10 @@ window.Effects = (function () {
     tower: '<path d="M76 92V30L80 4L84 30V92M60 92V50h12v42M88 92V44h12v48M44 92V62h12v30M104 92V58q8-10 16 0v34M14 92h132"/>' +
       '<circle class="v-blink" cx="66" cy="60" r="1.8" fill="currentColor"/><circle class="v-blink"' + d(-.5) + ' cx="94" cy="56" r="1.8" fill="currentColor"/>' +
       '<circle class="v-blink"' + d(-.9) + ' cx="50" cy="72" r="1.8" fill="currentColor"/><circle class="v-blink"' + d(-.3) + ' cx="112" cy="70" r="1.8" fill="currentColor"/>',
+    card: '<rect x="22" y="14" width="116" height="72" rx="10"/><path d="M22 34h116"/><rect x="34" y="46" width="18" height="13" rx="2"/>' +
+      '<path opacity=".55" d="M34 72h40"/>' +
+      '<rect class="v-blink" x="84" y="62" width="10" height="10" rx="2" fill="currentColor"/><rect class="v-blink"' + d(-.3) + ' x="98" y="62" width="10" height="10" rx="2" fill="currentColor"/>' +
+      '<rect class="v-blink"' + d(-.6) + ' x="112" y="62" width="10" height="10" rx="2" fill="currentColor"/><rect class="v-blink"' + d(-.9) + ' x="126" y="62" width="10" height="10" rx="2"/>',
     doc: '<path d="M46 6h50l18 18v68H46z"/><path d="M96 6v18h18"/><path opacity=".55" d="M58 38h40M58 50h40M58 62h24"/>' +
       '<path class="v-draw" pathLength="1" d="M82 74l8 8 18-20"/>'
   };

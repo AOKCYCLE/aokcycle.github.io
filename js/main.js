@@ -264,7 +264,24 @@
       .from('.hero__ctas > *', { opacity: 0, y: 24, stagger: 0.12, duration: 1 }, 1.4)
       .from('.orbit-badge', { opacity: 0, scale: 0.6, rotate: -90, duration: 1.4, ease: 'expo.out' }, 1.5)
       .from('.nav', { opacity: 0, y: -20, duration: 1, clearProps: 'opacity,transform' }, 1.2)
-      .from('.scroll-cue', { opacity: 0, duration: 1 }, 1.8);
+      .from('.scroll-cue', { opacity: 0, duration: 1 }, 1.8)
+      .add(nameAlive, 2.4);
+  }
+  function nameAlive() {
+    if (!heroSplit || reduce) return;
+    heroName.classList.add('is-alive');
+    // a slow wave runs through the letters
+    gsap.to(heroSplit.chars, { y: -10, duration: 1.8, ease: 'sine.inOut', yoyo: true, repeat: -1, stagger: { each: 0.14, from: 'start' } });
+    // the whole name tilts a little toward the cursor
+    if (finePointer) {
+      var rx = gsap.quickTo(heroName, 'rotationX', { duration: 1.2, ease: 'power3' }), ry = gsap.quickTo(heroName, 'rotationY', { duration: 1.2, ease: 'power3' });
+      gsap.set(heroName, { transformPerspective: 900 });
+      window.addEventListener('pointermove', function (e) {
+        if (window.scrollY > window.innerHeight) return;
+        ry((e.clientX / window.innerWidth - 0.5) * 10);
+        rx(-(e.clientY / window.innerHeight - 0.5) * 8);
+      }, { passive: true });
+    }
   }
   function ready() {
     if (!location.hash) { window.scrollTo(0, 0); if (lenis) lenis.scrollTo(0, { immediate: true }); }
@@ -401,7 +418,7 @@
   // personal photos: curtain reveal + slow drift
   $$('.me__shot').forEach(function (fig, i) {
     gsap.fromTo(fig, { clipPath: 'inset(100% 0% 0% 0%)' }, { clipPath: 'inset(0% 0% 0% 0%)', duration: 1.5, ease: 'expo.out', delay: (i % 3) * 0.1, scrollTrigger: { trigger: fig, start: 'top 92%', once: true } });
-    gsap.fromTo($('img', fig), { yPercent: -6, scale: 1.12 }, { yPercent: 6, ease: 'none', scrollTrigger: { trigger: fig, start: 'top bottom', end: 'bottom top', scrub: true } });
+    gsap.fromTo($('img', fig), { scale: 1.1, transformOrigin: '50% 0%' }, { scale: 1, ease: 'none', scrollTrigger: { trigger: fig, start: 'top bottom', end: 'bottom top', scrub: true } });
   });
 
   // premium brand wall and chips cascade in

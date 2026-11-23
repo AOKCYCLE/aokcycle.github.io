@@ -229,8 +229,8 @@ html:not(.js) .chapter__pin { position: relative; height: auto; display: flex; f
 .portrait::before { content: ""; position: absolute; inset: 12px; border: 1px solid var(--line-2); border-radius: 999px 999px 0 0; pointer-events: none; z-index: 2; }
 .portrait__emblem { width: 62%; height: auto; aspect-ratio: 1; color: var(--ink); transition: transform 1.2s var(--ease); }
 .portrait:hover .portrait__emblem { transform: scale(1.08) rotate(-4deg); }
-.portrait__photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 18%; transition: transform 1.6s var(--ease); }
-.portrait:hover .portrait__photo { transform: scale(1.05); }
+.portrait__photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 12%; transform: scale(1.14); transform-origin: 50% 22%; transition: transform 1.6s var(--ease); }
+.portrait:hover .portrait__photo { transform: scale(1.2); }
 .portrait__tag { position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%); z-index: 3; padding: .45rem 1rem; background: rgba(20, 20, 19, .7); backdrop-filter: blur(8px); border: 1px solid var(--line-2); color: var(--ink); white-space: nowrap; }
 .manifesto__title { font-size: clamp(3.2rem, 8vw, 7rem); line-height: .86; margin: 1.2rem 0 2rem; }
 .manifesto__lead { font-family: "Italiana", var(--display); font-size: clamp(1.4rem, 2.2vw, 1.9rem); line-height: 1.35; margin-bottom: 1.4rem; }
@@ -290,7 +290,7 @@ html:not(.js) .chapter__pin { position: relative; height: auto; display: flex; f
 .drawer__media { display: grid; grid-template-columns: 2fr 1fr; grid-template-rows: 1fr 1fr; gap: 6px; height: 280px; padding: 0 0 0; clear: both; }
 .drawer__media figure { margin: 0; overflow: hidden; background: #111110; display: grid; place-items: center; }
 .drawer__media figure:first-child { grid-row: span 2; }
-.drawer__media img { width: 100%; height: 100%; object-fit: cover; }
+.drawer__media img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 15%; }
 .drawer__media .is-viz { color: var(--ink); padding: 14px; border: 1px solid var(--line); }
 .drawer__media .is-viz .viz { width: 100%; height: 100%; }
 .drawer__content { padding: 2.2rem clamp(1.4rem, 4vw, 2.6rem) 1rem; }
@@ -828,6 +828,16 @@ html:not(.js) .chapter__pin { position: relative; height: auto; display: flex; f
 .footer__legal p:not(.footer__copy) { font-size: .76rem; line-height: 1.65; color: var(--dim); }
 .footer__legal .text-link { font-size: .66rem; color: var(--ink-2); }
 .me__shot img, .portrait__photo, .contact__me img { -webkit-user-drag: none; user-select: none; -webkit-touch-callout: none; }
+
+/* ---------- Living hero name ---------- */
+.hero__name { transform-style: preserve-3d; }
+.hero__name.is-alive .hero__word > div {
+  background: linear-gradient(105deg, var(--ink) 0%, var(--ink) 42%, #ffffff 50%, var(--ink) 58%, var(--ink) 100%);
+  background-size: 320% 100%; -webkit-background-clip: text; background-clip: text; color: transparent;
+  animation: nameShine 7s ease-in-out infinite;
+}
+.hero__name.is-alive .hero__word:last-child > div { animation-delay: -1.2s; }
+@keyframes nameShine { 0% { background-position: 110% 0; } 55%, 100% { background-position: -110% 0; } }
 
 /* =========================================================
    Reduced motion
