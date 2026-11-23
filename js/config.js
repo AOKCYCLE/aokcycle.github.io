@@ -9,9 +9,11 @@ window.SITE_CONFIG = {
   phoneLink: "+971561388774",
   whatsapp: "971561388774", // digits only, with country code
 
-  // Contact form delivery (FormSubmit.co). After you activate the form from the
-  // email FormSubmit sends you, you can replace the email below with the random
-  // alias FormSubmit gives you, to keep your address out of the page source.
+  // Contact form delivery.
+  // Web3Forms (preferred): paste the access key Web3Forms emailed you between the quotes.
+  // The key is safe to keep in a public website; it can only send form emails to you.
+  web3formsKey: "",
+  // Fallback used while the key above is empty (FormSubmit.co, needs its activation link).
   formEndpoint: "https://formsubmit.co/ajax/ahmedosamakarmallah7@gmail.com",
 
   social: {

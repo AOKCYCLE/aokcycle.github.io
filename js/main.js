@@ -95,15 +95,19 @@
       if (d.get('_honey')) return; // bot
       err.hidden = true;
       btn.disabled = true; btnLabel.textContent = 'Sending…';
-      var payload = {
+      var subject = 'New website request: ' + d.get('service') + ' (' + name + ')';
+      var fields = {
         name: name, email: email,
         phone: (d.get('phone') || '').trim() || '-',
         company: (d.get('company') || '').trim() || '-',
-        service: d.get('service'), budget: d.get('budget'), message: msg,
-        _subject: 'New website request: ' + d.get('service') + ' (' + name + ')',
-        _template: 'table', _replyto: email
+        service: d.get('service'), budget: d.get('budget'), message: msg
       };
-      fetch(CFG.formEndpoint, {
+      // Web3Forms when an access key is set, otherwise the FormSubmit fallback
+      var useW3 = !!CFG.web3formsKey;
+      var payload = useW3
+        ? Object.assign({ access_key: CFG.web3formsKey, subject: subject, from_name: 'Ahmed Osama website', replyto: email, botcheck: '' }, fields)
+        : Object.assign({ _subject: subject, _template: 'table', _replyto: email }, fields);
+      fetch(useW3 ? 'https://api.web3forms.com/submit' : CFG.formEndpoint, {
         method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         body: JSON.stringify(payload)
       }).then(function (r) { return r.json().catch(function () { return {}; }); }).then(function (res) {
