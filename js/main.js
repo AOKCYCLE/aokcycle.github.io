@@ -118,7 +118,10 @@
         method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         body: JSON.stringify(payload)
       }).then(function (r) { return r.json().catch(function () { return {}; }); }).then(function (res) {
-        if (String(res.success) === 'true') { sentAt = Date.now(); showDone(); }
+        if (String(res.success) === 'true') {
+          sentAt = Date.now(); showDone();
+          if (window.gtag) gtag('event', 'generate_lead', { form: 'project_enquiry', category: fields.category });
+        }
         else {
           var m = (res && res.message) ? String(res.message) : '';
           fail('Your enquiry could not be sent right now' + (m ? ' (' + m.replace(/</g, '&lt;') + ')' : '') + '. ' + contactLine());
@@ -299,11 +302,19 @@
       document.head.appendChild(sc);
     }
     var go = function () {
+      if (a.ga4) {
+        window.dataLayer = window.dataLayer || [];
+        window.gtag = function () { window.dataLayer.push(arguments); };
+        gtag('consent', 'default', { ad_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied', analytics_storage: 'granted' });
+        gtag('js', new Date());
+        gtag('config', a.ga4);
+        add('https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(a.ga4));
+      }
       if (a.plausible) add('https://plausible.io/js/script.js', { 'data-domain': a.plausible });
       if (a.cloudflare) add('https://static.cloudflareinsights.com/beacon.min.js', { 'data-cf-beacon': JSON.stringify({ token: a.cloudflare }) });
       if (a.goatcounter) add('https://gc.zgo.at/count.js', { 'data-goatcounter': 'https://' + a.goatcounter + '.goatcounter.com/count' });
     };
-    if (a.plausible || a.cloudflare || a.goatcounter) window.addEventListener('load', function () { setTimeout(go, 1500); });
+    if (a.ga4 || a.plausible || a.cloudflare || a.goatcounter) window.addEventListener('load', function () { setTimeout(go, 1500); });
   })();
 
   /* ---------- Mobile menu ---------- */
@@ -461,7 +472,7 @@
   function openGate() {
     gate.classList.add('is-open');
     var stopBrain = (window.Effects && Effects.brain) ? Effects.brain($('.gate__brain', gate)) : function () {};
-    var eyeCtl = (window.Effects && Effects.eyes) ? Effects.eyes(gate) : null;
+    var eyeCtl = (window.Effects && Effects.gateIcons) ? Effects.gateIcons(gate) : null;
     gsap.from('.gate__mid > *', { opacity: 0, y: 20, stagger: 0.12, duration: 0.8, ease: 'power3.out' });
 
     // the headings are already painted; only "UP" is split so it can jump like a looping GIF
@@ -502,7 +513,7 @@
             .add(function () { heroIntro(); }, 0.7)
             .add(function () { if (jump) jump.kill(); stopBrain(); if (eyeCtl) eyeCtl.destroy(); gate.remove(); ready(); });
         }
-        if (eyeCtl) eyeCtl.blink(b, leave); else leave();
+        if (eyeCtl) eyeCtl.play(b, leave); else leave();
       });
     });
   }
@@ -609,6 +620,16 @@
       if (!menu.classList.contains('is-open')) nav.classList.toggle('is-hidden', self.direction === 1 && y > 700);
     }
   });
+  var floatCta = $('.float-cta'), contactSec = $('#contact');
+  if (floatCta) {
+    ScrollTrigger.create({
+      start: 0, end: 'max',
+      onUpdate: function (self) {
+        var c = contactSec ? contactSec.getBoundingClientRect().top : 1e9;
+        floatCta.classList.toggle('is-on', self.scroll() > window.innerHeight * 0.85 && c > window.innerHeight * 0.55);
+      }
+    });
+  }
   $$('.nav__side a').forEach(function (a) {
     var sec = document.querySelector(a.getAttribute('href')); if (!sec) return;
     ScrollTrigger.create({ trigger: sec, start: 'top 50%', end: 'bottom 50%', onToggle: function (self) { a.classList.toggle('is-active', self.isActive); } });
@@ -646,7 +667,7 @@
     function modeFor(t) {
       if (!t || !t.closest) return ['default'];
       if (t.closest('dialog, input, textarea, select')) return ['hidden'];
-      if (t.closest('.orbit-badge')) return ['dot'];
+      if (t.closest('.orbit-badge, .eye-btn, .float-cta')) return ['dot'];
       if (t.closest('.feature, .short')) return ['play', ICON_PLAY, 'Play'];
       if (t.closest('.me__grid')) return ['drag', ICON_DRAG, 'Drag'];
       var a = t.closest('a[href]');

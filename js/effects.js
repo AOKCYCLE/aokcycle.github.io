@@ -220,18 +220,9 @@ window.Effects = (function () {
   /* ---------- Case studies: challenge, solution, execution, outcome ---------- */
   function esc(t) { return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
   function openCase(id) {
-    var c = (window.CASES || {})[id]; if (!c) return;
-    var h = '<p class="label">' + esc(c.label) + '</p><h3 class="display case-title">' + esc(c.title) + '</h3>';
-    if (c.meta) h += '<dl class="cmeta">' + c.meta.map(function (m) { return '<div><dt>' + esc(m[0]) + '</dt><dd>' + esc(m[1]) + '</dd></div>'; }).join('') + '</dl>';
-    if (c.outcome) h += '<h4 class="label csub">Results</h4><ul class="outcomes">' + c.outcome.map(function (o) { return '<li><b class="display">' + esc(o[0]) + '</b><span>' + esc(o[1]) + '</span></li>'; }).join('') + '</ul>';
-    var n = 0, steps = '';
-    [['Challenge', c.challenge], ['Solution', c.solution], ['Overview', c.overview]].forEach(function (x) {
-      if (x[1]) steps += '<div class="cstep"><span class="cstep__n display">0' + (++n) + '</span><h4>' + x[0] + '</h4><p>' + esc(x[1]) + '</p></div>';
-    });
-    if (c.execution) steps += '<div class="cstep"><span class="cstep__n display">0' + (++n) + '</span><h4>Execution</h4><ul class="ticks">' + c.execution.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul></div>';
-    h += '<div class="csteps">' + steps + '</div>';
-    if (c.note) h += '<p class="fineprint">' + esc(c.note) + '</p>';
-    openDrawer(h, [], c.service);
+    var card = document.querySelector('.case[data-case="' + id + '"]'), d = card && $('.case__detail', card);
+    if (!d) return;
+    openDrawer(d.innerHTML, [], d.getAttribute('data-service'));
   }
 
   /* ---------- Video modal ---------- */
@@ -537,64 +528,72 @@ window.Effects = (function () {
     });
   }
 
-  /* ---------- Entry gate: blinking eye buttons ---------- */
-  function eyeSVG(id) {
-    var shape = 'M8 48Q80-14 152 48Q80 110 8 48Z', fibers = '';
-    for (var a = 0; a < 360; a += 20) {
-      var c = Math.cos(a * Math.PI / 180), s = Math.sin(a * Math.PI / 180);
-      fibers += 'M' + (80 + c * 12.5).toFixed(1) + ' ' + (48 + s * 12.5).toFixed(1) + 'L' + (80 + c * 23.5).toFixed(1) + ' ' + (48 + s * 23.5).toFixed(1);
-    }
-    return '<svg class="eye" viewBox="0 0 160 96" aria-hidden="true"><defs><clipPath id="' + id + '"><path d="' + shape + '"/></clipPath></defs>' +
-      '<path class="eye__crease" d="M14 22Q80-26 146 22"/>' +
-      '<g class="eye__lids"><g clip-path="url(#' + id + ')"><path class="eye__white" d="' + shape + '"/>' +
-      '<g class="eye__look"><circle class="eye__iris" cx="80" cy="48" r="25"/><path class="eye__fibers" d="' + fibers + '"/>' +
-      '<circle class="eye__pupil" cx="80" cy="48" r="10.5"/><circle class="eye__glint" cx="88" cy="40" r="3.2"/></g></g>' +
-      '<path class="eye__outline" d="' + shape + '"/>' +
-      '<path class="eye__lashes" d="M36.8 28.2L28.8 22.3M58.4 19.8L53.7 11M80 17V6M101.6 19.8L106.3 11M123.2 28.2L131.2 22.3"/></g></svg>';
-  }
-  function eyes(root) {
-    var items = $$('.eye-btn', root).map(function (b, i) {
-      var holder = $('[data-eye]', b);
-      if (holder) holder.outerHTML = eyeSVG('eyeclip' + i);
-      return { b: b, lids: $('.eye__lids', b), look: $('.eye__look', b), svg: $('svg.eye', b), t: 0 };
+  /* ---------- Entry gate: a listening ear (sound) and closing lips (silence) ---------- */
+  var EAR_SVG = '<svg class="gicon gicon--ear" viewBox="0 0 160 96" aria-hidden="true"><g transform="translate(26 0)">' +
+    '<g class="ear__waves"><path class="ear__wave" d="M40 40Q34 52 40 64"/><path class="ear__wave" d="M29 31Q19 52 29 73"/><path class="ear__wave" d="M18 22Q4 52 18 82"/></g>' +
+    '<g class="ear">' +
+    '<path class="ear__shell" d="M54 30C54 16 65 8 78 8C93 8 104 19 104 35C104 47 97 53 91 58C86 62 84 66 84 72C84 81 77 88 68 88C61 88 56 84 54 79"/>' +
+    '<path class="ear__line" d="M66 34C66 26 72 21 79 21C87 21 92 27 92 34C92 41 87 44 83 47C79 50 76 53 76 59"/>' +
+    '<path class="ear__line" d="M68 50C72 48 75 50 74 55C73 59 69 60 66 58"/>' +
+    '</g></g></svg>';
+  var LIPS_SVG = '<svg class="gicon gicon--lips" viewBox="0 0 160 96" aria-hidden="true"><g class="lips">' +
+    '<path class="lips__upper" d="M28 50C38 42 50 32 64 31C71 31 76 35 80 38C84 35 89 31 96 31C110 32 122 42 132 50C112 47 96 50 80 51C64 50 48 47 28 50Z"/>' +
+    '<g class="lips__low"><path class="lips__lower" d="M28 50C48 54 64 57 80 57C96 57 112 54 132 50C120 64 102 76 80 76C58 76 40 64 28 50Z"/>' +
+    '<path class="lips__shine" d="M62 66Q80 70 98 66"/></g></g>' +
+    '<path class="lips__slash" pathLength="1" d="M34 88L126 8"/></svg>';
+
+  function gateIcons(root) {
+    var ear = null, lips = null, alive = true, timer = 0;
+    $$('[data-gate-icon]', root).forEach(function (holder) {
+      var kind = holder.getAttribute('data-gate-icon'), btn = holder.closest('.eye-btn');
+      holder.outerHTML = kind === 'ear' ? EAR_SVG : LIPS_SVG;
+      if (kind === 'ear') ear = { b: btn, g: $('.ear', btn), waves: $$('.ear__wave', btn) };
+      else lips = { b: btn, g: $('.lips', btn), up: $('.lips__upper', btn), low: $('.lips__low', btn), slash: $('.lips__slash', btn) };
     });
     if (!G) return null;
-    G.set(items.map(function (it) { return it.lids; }), { transformOrigin: '50% 62%' });
-    function blinkOne(it, times) {
-      var tl = G.timeline();
-      for (var i = 0; i < (times || 1); i++) {
-        tl.to(it.lids, { scaleY: 0.04, duration: 0.07, ease: 'power2.in' })
-          .to(it.lids, { scaleY: 1, duration: 0.14, ease: 'power2.out' }, '+=0.03');
-      }
-      return tl;
+    if (ear) {
+      G.set(ear.g, { transformOrigin: '75% 20%' });
+      ear.b.addEventListener('pointerenter', function () { G.to(ear.g, { rotation: -9, duration: 0.45, ease: 'power3.out' }); });
+      ear.b.addEventListener('pointerleave', function () { G.to(ear.g, { rotation: 0, duration: 0.6, ease: 'power3.out' }); });
     }
-    var alive = true;
-    items.forEach(function (it) {
-      (function loop() {
-        it.t = setTimeout(function () { if (!alive) return; blinkOne(it, Math.random() < 0.25 ? 2 : 1); loop(); }, 1800 + Math.random() * 3400);
+    if (lips) {
+      G.set(lips.g, { transformOrigin: '50% 55%' });
+      lips.b.addEventListener('pointerenter', function () { G.to(lips.g, { scaleX: 0.88, scaleY: 1.08, duration: 0.4, ease: 'power3.out' }); });
+      lips.b.addEventListener('pointerleave', function () { G.to(lips.g, { scaleX: 1, scaleY: 1, duration: 0.55, ease: 'power3.out' }); });
+      // every few seconds the lips press together for a moment
+      (function idle() {
+        timer = setTimeout(function () {
+          if (!alive) return;
+          G.timeline().to(lips.up, { y: 2.5, duration: 0.12, ease: 'power2.in' }).to(lips.low, { y: -2.5, duration: 0.12, ease: 'power2.in' }, 0)
+            .to([lips.up, lips.low], { y: 0, duration: 0.3, ease: 'power2.out' }, '+=0.12');
+          idle();
+        }, 2200 + Math.random() * 2600);
       })();
-      it.b.addEventListener('pointerenter', function () { G.to(it.lids, { scaleY: 1.12, duration: 0.35, ease: 'power3.out' }); });
-      it.b.addEventListener('pointerleave', function () { G.to(it.lids, { scaleY: 1, duration: 0.5, ease: 'power3.out' }); });
-    });
-    function onMove(e) {
-      items.forEach(function (it) {
-        var r = it.svg.getBoundingClientRect();
-        var dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2);
-        G.to(it.look, { x: Math.max(-16, Math.min(16, dx / 16)), y: Math.max(-7, Math.min(7, dy / 26)), duration: 0.45, ease: 'power3.out' });
-      });
     }
-    window.addEventListener('pointermove', onMove, { passive: true });
     return {
-      blink: function (btn, done) {
+      play: function (btn, done) {
         var tl = G.timeline({ onComplete: done });
-        items.forEach(function (it) { tl.add(blinkOne(it, it.b === btn ? 2 : 1), 0); });
+        [ear, lips].forEach(function (it) { if (it && it.b !== btn) tl.to(it.b, { opacity: 0.25, duration: 0.4 }, 0); });
+        if (ear && btn === ear.b) {
+          // the ear twitches and sound ripples out
+          tl.to(ear.g, { rotation: -15, duration: 0.11, ease: 'power2.out' }, 0)
+            .to(ear.g, { rotation: 9, duration: 0.11, ease: 'power2.inOut' })
+            .to(ear.g, { rotation: -7, duration: 0.1, ease: 'power2.inOut' })
+            .to(ear.g, { rotation: 4, duration: 0.1, ease: 'power2.inOut' })
+            .to(ear.g, { rotation: 0, duration: 0.4, ease: 'elastic.out(1, 0.4)' })
+            .fromTo(ear.waves, { opacity: 1, scale: 1 }, { opacity: 0, scale: 1.8, transformOrigin: '100% 50%', duration: 0.6, stagger: 0.1, ease: 'power2.out', repeat: 1 }, 0);
+        } else if (lips && btn === lips.b) {
+          // the lips press shut and a mute line draws across
+          tl.to(lips.g, { scaleX: 1, scaleY: 1, duration: 0.15 }, 0)
+            .to(lips.up, { y: 3.2, duration: 0.18, ease: 'power3.in' }, 0)
+            .to(lips.low, { y: -3.2, duration: 0.18, ease: 'power3.in' }, 0)
+            .to(lips.g, { scaleX: 0.92, duration: 0.18, ease: 'power3.in' }, 0)
+            .to(lips.slash, { strokeDashoffset: 0, duration: 0.45, ease: 'power2.inOut' }, 0.2)
+            .to({}, { duration: 0.3 });
+        }
         return tl;
       },
-      destroy: function () {
-        alive = false;
-        items.forEach(function (it) { clearTimeout(it.t); });
-        window.removeEventListener('pointermove', onMove);
-      }
+      destroy: function () { alive = false; clearTimeout(timer); }
     };
   }
 
@@ -676,7 +675,7 @@ window.Effects = (function () {
 
   return {
     viz: viz,
-    eyes: eyes,
+    gateIcons: gateIcons,
     brain: brain,
     openCase: openCase,
     init: function (opts) {

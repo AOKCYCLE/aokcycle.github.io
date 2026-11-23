@@ -50,6 +50,15 @@ The first time someone sends the form, FormSubmit emails **ahmedosamakarmallah7@
 
 You need a domain from any registrar (GoDaddy, Namecheap, Cloudflare, Google/Squarespace Domains…). Example used below: `ahmedosama.com`.
 
+### Step 0: Update the site's own links (one command)
+Open `site.config.json`, set `"siteUrl"` to your new address (for example `"https://ahmedosama.com"`), then run from this folder:
+
+```
+python tools/apply_site_config.py
+```
+
+It updates the canonical link, social preview tags, structured data, `sitemap.xml`, `robots.txt` and `legal.html`, and writes the `CNAME` file. Commit and push, then continue with Step 1.
+
 ### Step 1: Tell GitHub your domain
 Repository **Settings → Pages → Custom domain**, type `ahmedosama.com`, then **Save**.
 GitHub adds a `CNAME` file to the repository automatically.
@@ -80,3 +89,21 @@ GitHub **profile picture → Settings → Pages → Add a domain**. Add the TXT 
 ### Check it
 - `https://ahmedosama.com` opens the site with a padlock
 - `https://www.ahmedosama.com` redirects to it
+
+---
+
+## Search engines & analytics
+
+All three settings live in `site.config.json`. After changing any of them, run `python tools/apply_site_config.py`, commit and push.
+
+### Google Search Console (needs your Google account)
+1. Go to https://search.google.com/search-console and add a **URL prefix** property for the site address.
+2. Choose **HTML tag**. Copy only the `content="..."` value into `"googleSiteVerification"`.
+3. Run the tool, push, wait for GitHub Pages to publish, then press **Verify** in Search Console.
+4. In Search Console open **Sitemaps** and submit `sitemap.xml`.
+
+### Google Analytics 4 (needs your Google account)
+Create a GA4 property and web data stream, copy the Measurement ID (`G-XXXXXXXXXX`) into `"ga4MeasurementId"` and run the tool. Advertising features stay off. A successful enquiry is recorded as the `generate_lead` event.
+
+### Case studies
+Each case card in `index.html` carries its full story inside `<div class="case__detail" hidden>`. Search engines read it there and the side panel opens it. Edit the text in place.

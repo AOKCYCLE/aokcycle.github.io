@@ -16,11 +16,13 @@ window.SITE_CONFIG = {
   // Fallback used while the key above is empty (FormSubmit.co, needs its activation link).
   formEndpoint: "https://formsubmit.co/ajax/ahmedosamakarmallah7@gmail.com",
 
-  // Privacy-friendly visitor analytics (no cookies). Fill ONE of these to switch it on:
-  //   plausible:   your domain as added in Plausible, e.g. "aokcycle.github.io"
-  //   cloudflare:  the token from Cloudflare Web Analytics
-  //   goatcounter: your GoatCounter code, e.g. "ahmedosama"
-  analytics: { plausible: "", cloudflare: "", goatcounter: "" },
+  // Visitor analytics. Leave empty to keep it off. Fill ONE of these to switch it on:
+  //   ga4:         Google Analytics 4 measurement ID, e.g. "G-XXXXXXXXXX" (sets cookies; ads features stay off)
+  //   plausible:   your domain as added in Plausible (cookieless)
+  //   cloudflare:  the token from Cloudflare Web Analytics (cookieless)
+  //   goatcounter: your GoatCounter code (cookieless)
+  // Tip: tools/apply_site_config.py fills ga4 from site.config.json.
+  analytics: { ga4: "", plausible: "", cloudflare: "", goatcounter: "" },
 
   social: {
     linkedin:  "https://www.linkedin.com/in/ahmedabdelaatyy/",

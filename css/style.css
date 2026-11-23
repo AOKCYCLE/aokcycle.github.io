@@ -1407,6 +1407,76 @@ html.has-cursor .cursor[data-mode="dot"] { opacity: 0; }
   100% { box-shadow: 0 0 0 0 rgba(236, 230, 216, 0); border-color: var(--line-2); }
 }
 
+
+/* ---------- Entry gate: listening ear + closing lips ---------- */
+.gicon { width: clamp(118px, 12vw, 170px); height: auto; overflow: visible; color: var(--ink); }
+.ear__shell, .ear__line { fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.ear__line { stroke-width: 1.7; opacity: .8; }
+.ear__wave { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; opacity: .2; animation: earWave 2.2s ease-in-out infinite; }
+.ear__wave:nth-child(2) { animation-delay: .25s; }
+.ear__wave:nth-child(3) { animation-delay: .5s; }
+@keyframes earWave { 0%, 100% { opacity: .15; } 35% { opacity: .95; } }
+.eye-btn:hover .ear__wave { animation-duration: 1.1s; }
+.lips__upper, .lips__lower { fill: rgba(236, 230, 216, .06); stroke: currentColor; stroke-width: 2.2; stroke-linejoin: round; transition: fill .4s; }
+.lips__shine { fill: none; stroke: currentColor; stroke-width: 1.2; stroke-linecap: round; opacity: .45; }
+.lips__slash { fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 1; }
+.eye-btn:hover .lips__upper, .eye-btn:hover .lips__lower { fill: rgba(236, 230, 216, .14); }
+@media (max-width: 640px) { .gicon { width: 120px; } }
+
+
+/* ---------- SEO pass: responsive images, enquiry prompts, footer links ---------- */
+picture { display: contents; }
+
+/* enquiry band after the case studies */
+.cta-band { display: flex; align-items: center; justify-content: space-between; gap: 1.4rem 2.4rem; margin-top: clamp(24px, 3vw, 40px);
+  padding: clamp(1.4rem, 3vw, 2.2rem) clamp(1.4rem, 3vw, 2.6rem); border: 1px solid var(--line-2);
+  background: linear-gradient(120deg, rgba(236, 230, 216, .07), rgba(236, 230, 216, 0) 60%); }
+.cta-band__title { font-size: clamp(1.5rem, 2.6vw, 2.2rem); line-height: 1.05; }
+.cta-band__text { margin-top: .5rem; color: var(--ink-2); max-width: 38rem; }
+.cta-band .frame-btn { flex: none; }
+
+/* floating "Discuss a project" pill */
+.float-cta { position: fixed; left: 24px; bottom: 30px; z-index: 99; display: inline-flex; align-items: center; gap: .7rem;
+  padding: .85rem 1.15rem .85rem 1rem; border-radius: 999px; background: rgba(20, 20, 19, .9); border: 1px solid var(--ink); color: var(--ink);
+  font-size: .68rem; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; backdrop-filter: blur(8px);
+  box-shadow: 0 18px 40px -18px rgba(0, 0, 0, .9); opacity: 0; transform: translateY(24px); pointer-events: none;
+  transition: opacity .5s var(--ease), transform .6s var(--ease), background .35s, color .35s; }
+.float-cta.is-on { opacity: 1; transform: none; pointer-events: auto; }
+.float-cta:hover { background: var(--ink); color: var(--bg); }
+.float-cta__dot { position: relative; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+.float-cta__dot::after { content: ""; position: absolute; inset: -4px; border-radius: 50%; border: 1px solid currentColor; animation: ring 2.2s ease-out infinite; }
+.float-cta .ic { transition: transform .5s var(--ease); }
+.float-cta:hover .ic { transform: translateX(4px); }
+.drawer-open .float-cta, .menu.is-open ~ .float-cta { opacity: 0; pointer-events: none; }
+
+/* footer: descriptive links to every section */
+.footer__nav { display: flex; flex-wrap: wrap; justify-content: center; gap: .5rem 1.4rem; max-width: 56rem; font-size: .78rem; letter-spacing: .06em; color: var(--ink-2); }
+.footer__nav a { padding: .2rem 0; border-bottom: 1px solid transparent; transition: color .3s, border-color .3s; }
+.footer__nav a:hover { color: var(--ink); border-color: var(--line-2); }
+
+/* founder: career and capabilities side by side */
+.founder__more { grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: clamp(28px, 4vw, 64px); align-items: start; }
+.career ol { grid-template-columns: 1fr 1fr; }
+.career li { padding: .75rem 0 .85rem; }
+.career b { font-size: .96rem; }
+.founder__cols { grid-template-columns: 1fr; gap: 1.4rem; }
+
+/* brand directory: two rows to start */
+.premium li { min-height: 70px; }
+.brand-list.is-collapsed:not(.is-filtered) { max-height: 6.9rem; }
+
+@media (max-width: 900px) {
+  .founder__more { grid-template-columns: 1fr; }
+}
+@media (max-width: 640px) {
+  .cta-band { flex-direction: column; align-items: stretch; }
+  .cta-band .frame-btn { width: 100%; }
+  .float-cta { left: 16px; bottom: 16px; padding: .8rem 1rem .8rem .9rem; font-size: .62rem; letter-spacing: .14em; }
+  .career ol { grid-template-columns: 1fr; }
+  .brand-list.is-collapsed:not(.is-filtered) { max-height: 9.4rem; }
+  .premium li { min-height: 56px; }
+}
+
 /* =========================================================
    Reduced motion
    ========================================================= */
