@@ -19,23 +19,21 @@
   /* ---------- Contact details & social links ---------- */
   var ICONS = {
     linkedin: 'fa-brands fa-linkedin-in', youtube: 'fa-brands fa-youtube', tiktok: 'fa-brands fa-tiktok',
-    instagram: 'fa-brands fa-instagram', x: 'fa-brands fa-x-twitter', facebook: 'fa-brands fa-facebook-f', whatsapp: 'fa-brands fa-whatsapp'
+    instagram: 'fa-brands fa-instagram', facebook: 'fa-brands fa-facebook-f', whatsapp: 'fa-brands fa-whatsapp'
   };
   var social = Object.assign({}, CFG.social || {});
   if (CFG.whatsapp) social.whatsapp = 'https://wa.me/' + CFG.whatsapp;
   $$('[data-email]').forEach(function (a) { if (CFG.email) { a.href = 'mailto:' + CFG.email; a.textContent = CFG.email; } });
+  $$('[data-email-card]').forEach(function (a) { if (CFG.email) a.href = 'mailto:' + CFG.email; });
   $$('[data-phone]').forEach(function (a) { if (CFG.phoneLink) { a.href = 'tel:' + CFG.phoneLink; a.textContent = CFG.phoneDisplay; } });
   $$('[data-whatsapp]').forEach(function (a) { if (social.whatsapp) a.href = social.whatsapp; });
   $$('[data-social]').forEach(function (el) {
     var url = social[el.getAttribute('data-social')];
     if (url) { el.href = url; el.target = '_blank'; el.rel = 'noopener'; }
-    else {
-      el.classList.add('is-soon'); el.setAttribute('aria-disabled', 'true');
-      var cta = $('.channel__cta', el); if (cta) cta.textContent = 'Coming soon';
-    }
+    else el.remove();
   });
   $$('[data-socials]').forEach(function (wrap) {
-    ['linkedin', 'youtube', 'tiktok', 'instagram', 'x', 'facebook', 'whatsapp'].forEach(function (k) {
+    ['linkedin', 'youtube', 'tiktok', 'instagram', 'facebook', 'whatsapp'].forEach(function (k) {
       if (!social[k]) return;
       var a = document.createElement('a');
       a.href = social[k]; a.target = '_blank'; a.rel = 'noopener';
@@ -44,13 +42,14 @@
       wrap.appendChild(a);
     });
   });
+  if (CFG.portrait) $$('[data-portrait]').forEach(function (im) { im.src = 'assets/ahmed.jpg'; im.hidden = false; });
   var yearEl = $('#year'); if (yearEl) yearEl.textContent = new Date().getFullYear();
 
   /* ---------- Toast & copy ---------- */
   var toastEl = $('.toast'), toastT;
   function toast(msg) {
     toastEl.textContent = msg; toastEl.classList.add('is-on');
-    clearTimeout(toastT); toastT = setTimeout(function () { toastEl.classList.remove('is-on'); }, 2200);
+    clearTimeout(toastT); toastT = setTimeout(function () { toastEl.classList.remove('is-on'); }, 2400);
   }
   $$('[data-copy]').forEach(function (b) {
     b.addEventListener('click', function () {
@@ -67,41 +66,68 @@
   var lastTick = 0;
   document.addEventListener('pointerover', function (e) {
     if (!window.Sound || !Sound.isOn()) return;
-    if (!e.target.closest('a, button, summary, .pills label')) return;
+    if (!e.target.closest('a, button, summary, .pills label, .bcard, .case, .flow__item')) return;
     var now = performance.now(); if (now - lastTick < 90) return; lastTick = now;
     Sound.tick();
   });
 
-  /* ---------- Contact form → WhatsApp / email ---------- */
+  /* ---------- Contact form → email (FormSubmit) ---------- */
   var form = $('#contactForm');
+  function pickService(value) {
+    if (!form) return;
+    var r = $$('input[name="service"]', form).filter(function (i) { return i.value === value; })[0];
+    if (r) r.checked = true;
+  }
   if (form) {
-    var lastSend = 'whatsapp';
-    $$('[data-send]', form).forEach(function (b) { b.addEventListener('click', function () { lastSend = b.getAttribute('data-send'); }); });
+    var body = $('.form__body', form), done = $('.form__done', form), err = $('.form__error', form);
+    var btn = $('button[type="submit"]', form), btnLabel = $('.btn-label', btn);
+    function fail(msg) { err.innerHTML = msg; err.hidden = false; }
     form.addEventListener('submit', function (e) {
       e.preventDefault();
       var d = new FormData(form);
-      var name = (d.get('name') || '').trim(), msg = (d.get('message') || '').trim();
-      var err = $('.form__error', form);
-      if (!name || !msg) { err.hidden = false; return; }
-      err.hidden = true;
-      var lines = ['Hello Ahmed,', '', msg, '', 'Interested in: ' + d.get('service'), 'Name: ' + name];
-      if (d.get('company')) lines.push('Company: ' + d.get('company'));
-      if (d.get('email')) lines.push('Email: ' + d.get('email'));
-      if (d.get('phone')) lines.push('Phone: ' + d.get('phone'));
-      var text = lines.join('\n');
-      if (lastSend === 'email') {
-        var subject = 'Consultation request: ' + d.get('service') + ' (' + name + ')';
-        window.location.href = 'mailto:' + CFG.email + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(text);
-      } else {
-        window.open('https://wa.me/' + CFG.whatsapp + '?text=' + encodeURIComponent(text), '_blank', 'noopener');
+      var name = (d.get('name') || '').trim(), email = (d.get('email') || '').trim(), msg = (d.get('message') || '').trim();
+      if (!name || !msg || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        fail('Please add your name, a valid email and a short message.');
+        return;
       }
-      toast('Opening ' + (lastSend === 'email' ? 'your email app' : 'WhatsApp') + '…');
+      if (d.get('_honey')) return; // bot
+      err.hidden = true;
+      btn.disabled = true; btnLabel.textContent = 'Sending…';
+      var payload = {
+        name: name, email: email,
+        phone: (d.get('phone') || '').trim() || '-',
+        company: (d.get('company') || '').trim() || '-',
+        service: d.get('service'), budget: d.get('budget'), message: msg,
+        _subject: 'New website request: ' + d.get('service') + ' (' + name + ')',
+        _template: 'table', _replyto: email
+      };
+      fetch(CFG.formEndpoint, {
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify(payload)
+      }).then(function (r) { return r.json().catch(function () { return {}; }); }).then(function (res) {
+        if (String(res.success) === 'true') {
+          showDone();
+        } else {
+          var m = (res && res.message) ? String(res.message) : '';
+          fail('Your message could not be sent right now' + (m ? ' (' + m.replace(/</g, '&lt;') + ')' : '') + '. Please email <a href="mailto:' + CFG.email + '">' + CFG.email + '</a> or <a href="https://wa.me/' + CFG.whatsapp + '" target="_blank" rel="noopener">WhatsApp me</a>.');
+        }
+      }).catch(function () {
+        fail('Connection problem. Please email <a href="mailto:' + CFG.email + '">' + CFG.email + '</a> or <a href="https://wa.me/' + CFG.whatsapp + '" target="_blank" rel="noopener">WhatsApp me</a>.');
+      }).then(function () { btn.disabled = false; btnLabel.textContent = 'Send my request'; });
     });
-    $$('[data-service]').forEach(function (a) {
-      a.addEventListener('click', function () {
-        var r = $('input[name="service"][value="' + a.getAttribute('data-service') + '"]', form);
-        if (r) r.checked = true;
-      });
+    function showDone() {
+      body.hidden = true; done.hidden = false;
+      if (window.gsap && !reduce) {
+        gsap.fromTo($$('svg circle, svg path', done), { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 1, stagger: 0.3, ease: 'power2.out' });
+        gsap.from($$('h3, p, button', done), { y: 20, opacity: 0, stagger: 0.1, duration: 0.7, delay: 0.4 });
+      }
+      if (window.Sound && Sound.isOn()) { Sound.tick(); setTimeout(Sound.tick, 160); }
+    }
+    $('.form__again', form).addEventListener('click', function () {
+      form.reset(); done.hidden = true; body.hidden = false;
+    });
+    $$('[data-service]:not(.flow__item)').forEach(function (a) {
+      a.addEventListener('click', function () { pickService(a.getAttribute('data-service')); });
     });
   }
 
@@ -121,59 +147,39 @@
   burger.addEventListener('click', function () { setMenu(burger.getAttribute('aria-expanded') !== 'true'); });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && menu.classList.contains('is-open')) setMenu(false); });
 
-  /* ---------- Services slider (works with or without GSAP) ---------- */
-  var slider = $('.slider');
-  var goTo = function () {};
-  if (slider) {
-    var track = $('.slider__track', slider), slides = $$('.slide', slider);
-    var current = 0, countEl = $('.slider__current', slider), dotsWrap = $('.slider__dots', slider);
-    slides.forEach(function (s, i) {
-      var b = document.createElement('button');
-      b.type = 'button'; b.setAttribute('role', 'tab'); b.setAttribute('aria-label', 'Service ' + (i + 1));
-      b.addEventListener('click', function () { goTo(i); });
-      dotsWrap.appendChild(b);
-    });
-    var dots = $$('button', dotsWrap);
-    goTo = function (i) {
-      current = (i + slides.length) % slides.length;
-      track.style.transform = 'translateX(' + (-100 * current) + '%)';
-      countEl.textContent = String(current + 1).padStart(2, '0');
-      dots.forEach(function (d, k) { d.setAttribute('aria-selected', String(k === current)); });
-      slides.forEach(function (s, k) { s.setAttribute('aria-hidden', String(k !== current)); s.inert = k !== current; });
-      if (hasGsap && !reduce) {
-        var s = slides[current];
-        gsap.fromTo($('.slide__art', s), { scale: 0.92, opacity: 0.2 }, { scale: 1, opacity: 1, duration: 1.2, ease: 'expo.out', delay: 0.15 });
-        gsap.fromTo($$('.slide__body > *', s), { y: 30, opacity: 0 }, { y: 0, opacity: 1, stagger: 0.07, duration: 0.9, ease: 'power3.out', delay: 0.25 });
+  /* ---------- FAQ accordion (smooth height) ---------- */
+  $$('.qa').forEach(function (d) {
+    var sum = $('summary', d), bodyEl = $('.qa__body', d);
+    sum.addEventListener('click', function (e) {
+      if (!window.gsap || reduce) return;
+      e.preventDefault();
+      if (d.open) {
+        gsap.to(bodyEl, { height: 0, opacity: 0, duration: 0.45, ease: 'power3.inOut', onComplete: function () { d.open = false; gsap.set(bodyEl, { clearProps: 'height,opacity' }); if (window.ScrollTrigger) ScrollTrigger.refresh(); } });
+      } else {
+        d.open = true;
+        gsap.fromTo(bodyEl, { height: 0, opacity: 0 }, { height: 'auto', opacity: 1, duration: 0.6, ease: 'power3.out', onComplete: function () { gsap.set(bodyEl, { clearProps: 'height' }); if (window.ScrollTrigger) ScrollTrigger.refresh(); } });
       }
-      if (window.Sound) Sound.tick();
-    };
-    $$('.slider__btn', slider).forEach(function (b) { b.addEventListener('click', function () { goTo(current + Number(b.getAttribute('data-dir'))); }); });
-    slider.addEventListener('keydown', function (e) {
-      if (e.key === 'ArrowRight') goTo(current + 1);
-      if (e.key === 'ArrowLeft') goTo(current - 1);
     });
-    var sx = null;
-    slider.addEventListener('pointerdown', function (e) { sx = e.clientX; });
-    slider.addEventListener('pointerup', function (e) {
-      if (sx === null) return;
-      var dx = e.clientX - sx; sx = null;
-      if (Math.abs(dx) > 50) goTo(current + (dx < 0 ? 1 : -1));
-    });
-    // first state without animation
-    track.style.transform = 'translateX(0)';
-    countEl.textContent = '01';
-    dots.forEach(function (d, k) { d.setAttribute('aria-selected', String(k === 0)); });
-    slides.forEach(function (s, k) { s.setAttribute('aria-hidden', String(k !== 0)); s.inert = k !== 0; });
-  }
+  });
 
   /* ---------- Static fallback ---------- */
+  function scrollToEl(el) {
+    if (!el) return;
+    if (lenis) lenis.scrollTo(el, { offset: 0, duration: 1.6 });
+    else el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' });
+  }
+  function onBook(service) {
+    pickService(service);
+    scrollToEl($('#contact'));
+    setTimeout(function () { var f = $('#contactForm input[name="name"]'); if (f) f.focus({ preventScroll: true }); }, 1700);
+  }
   if (!hasGsap) {
     document.documentElement.classList.remove('js');
     window.__siteReady = true;
+    if (window.Effects) Effects.init({ onBook: onBook, photos: CFG.photos });
     return;
   }
   window.__siteReady = true;
-  // the film always starts at the top (no jump to an old scroll position on reload)
   if (!location.hash) {
     if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
     window.scrollTo(0, 0);
@@ -184,6 +190,7 @@
   /* ---------- Lenis smooth scroll ---------- */
   if (!reduce && window.Lenis) {
     lenis = new Lenis({ lerp: 0.08, smoothWheel: true });
+    window.__lenis = lenis;
     lenis.on('scroll', ScrollTrigger.update);
     gsap.ticker.add(function (time) { lenis.raf(time * 1000); });
     gsap.ticker.lagSmoothing(0);
@@ -195,22 +202,19 @@
       var el = document.querySelector(id); if (!el) return;
       e.preventDefault();
       if (menu.classList.contains('is-open')) setMenu(false);
-      var y = id === '#story' ? el.offsetTop + window.innerHeight * 0.35 : el;
-      if (lenis) lenis.scrollTo(y, { offset: 0, duration: 1.8 });
-      else if (typeof y === 'number') window.scrollTo({ top: y, behavior: reduce ? 'auto' : 'smooth' });
-      else el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' });
+      if (id === '#story') { var y = el.offsetTop + window.innerHeight * 0.35; if (lenis) lenis.scrollTo(y, { duration: 1.8 }); else window.scrollTo({ top: y, behavior: 'smooth' }); return; }
+      scrollToEl(el);
     });
   });
 
-  /* ---------- WebGL stage + globe ---------- */
+  /* ---------- WebGL stage + globe + effects ---------- */
   var stage = window.initStage ? window.initStage($('#stage'), { static: reduce }) : null;
   if (window.initGlobe) window.initGlobe($('#globe'), { static: reduce });
+  if (window.Effects) Effects.init({ onBook: onBook, photos: CFG.photos });
 
-  /* ---------- Split headings (masked line reveal) ---------- */
+  /* ---------- Hero intro ---------- */
   var heroName = $('.hero__name');
-  var heroWords = $$('.hero__word');
-  var heroSplit = window.SplitText ? SplitText.create(heroWords, { type: 'chars' }) : null;
-
+  var heroSplit = window.SplitText ? SplitText.create($$('.hero__word'), { type: 'chars' }) : null;
   function heroIntro() {
     gsap.set(heroName, { autoAlpha: 1 });
     gsap.set('[data-intro]', { opacity: 1 });
@@ -223,6 +227,7 @@
     tl.from('.kicker', { opacity: 0, y: 16, duration: 1 }, 0.9)
       .from('.hero__line', { opacity: 0, y: 20, filter: 'blur(8px)', duration: 1.2, clearProps: 'filter' }, 1.2)
       .from('.hero__ctas > *', { opacity: 0, y: 24, stagger: 0.12, duration: 1 }, 1.4)
+      .from('.orbit-badge', { opacity: 0, scale: 0.6, rotate: -90, duration: 1.4, ease: 'expo.out' }, 1.5)
       .from('.nav', { opacity: 0, y: -20, duration: 1, clearProps: 'opacity,transform' }, 1.2)
       .from('.scroll-cue', { opacity: 0, duration: 1 }, 1.8);
   }
@@ -248,8 +253,8 @@
     Promise.race([Promise.all([minTime, fontsReady]), cap]).then(function () {
       gsap.to('.loader__bar span', { scaleX: 1, duration: 0.3 });
       var skipGate = store.get('ao-entered');
-      var out = gsap.timeline({ delay: 0.35 });
-      out.to(['.loader__brand', '.loader__bar'], { opacity: 0, duration: 0.5 })
+      gsap.timeline({ delay: 0.35 })
+        .to(['.loader__brand', '.loader__bar'], { opacity: 0, duration: 0.5 })
         .to('.loader__emblem', { scale: 0.4, opacity: 0, duration: 0.8, ease: 'power3.in' }, 0)
         .add(function () {
           if (skipGate) { loader.remove(); gate.remove(); heroIntro(); ready(); return; }
@@ -257,7 +262,6 @@
         });
     });
   }
-
   function openGate() {
     gate.classList.add('is-open');
     gate.setAttribute('aria-hidden', 'false');
@@ -323,40 +327,30 @@
     start: 'top 92%', once: true,
     onEnter: function (els) { gsap.fromTo(els, { y: 50, opacity: 0 }, { y: 0, opacity: 1, stagger: 0.09, duration: 1.1, ease: 'power3.out', overwrite: true }); }
   });
-
   gsap.fromTo('.portrait', { clipPath: 'inset(100% 0% 0% 0%)' }, { clipPath: 'inset(0% 0% 0% 0%)', duration: 1.8, ease: 'expo.out', scrollTrigger: { trigger: '.portrait', start: 'top 85%', once: true } });
 
-  /* ---------- Counters ---------- */
-  $$('.count').forEach(function (el) {
-    var to = parseFloat(el.getAttribute('data-to')), pre = el.getAttribute('data-prefix') || '', suf = el.getAttribute('data-suffix') || '';
-    var o = { v: 0 }; el.textContent = pre + '0' + suf;
-    ScrollTrigger.create({
-      trigger: el, start: 'top 90%', once: true,
-      onEnter: function () { gsap.to(o, { v: to, duration: 2.4, ease: 'power3.out', onUpdate: function () { el.textContent = pre + Math.round(o.v) + suf; } }); }
-    });
+  // service lines slide in from alternating sides
+  $$('.flow__item').forEach(function (it, i) {
+    gsap.from(it, { xPercent: i % 2 ? 8 : -8, opacity: 0, duration: 1.2, ease: 'expo.out', scrollTrigger: { trigger: it, start: 'top 92%', once: true } });
   });
 
-  /* ---------- Gallery strip glides sideways while you scroll ---------- */
-  var strip = $('.strip__track');
-  if (strip) {
-    gsap.fromTo(strip, { x: function () { return window.innerWidth * 0.15; } }, {
-      x: function () { return -(strip.scrollWidth - window.innerWidth * 0.85); }, ease: 'none',
-      scrollTrigger: { trigger: '.world', start: 'top bottom', end: 'bottom top', scrub: true, invalidateOnRefresh: true }
-    });
-  }
+  /* ---------- Counters (replay on hover / tap) ---------- */
+  $$('.count').forEach(function (el) {
+    var to = parseFloat(el.getAttribute('data-to')), pre = el.getAttribute('data-prefix') || '', suf = el.getAttribute('data-suffix') || '';
+    var o = { v: 0 };
+    el.textContent = pre + '0' + suf;
+    el._run = function () {
+      o.v = 0;
+      gsap.to(o, { v: to, duration: 2, ease: 'power3.out', overwrite: true, onUpdate: function () { el.textContent = pre + Math.round(o.v) + suf; } });
+    };
+    ScrollTrigger.create({ trigger: el, start: 'top 90%', once: true, onEnter: el._run });
+    var host = el.closest('.num');
+    if (host) host.addEventListener('pointerenter', el._run);
+  });
 
-  /* ---------- Journey accordion with smooth height ---------- */
-  $$('.role').forEach(function (d) {
-    var sum = $('summary', d), body = $('.role__body', d);
-    sum.addEventListener('click', function (e) {
-      e.preventDefault();
-      if (d.open) {
-        gsap.to(body, { height: 0, opacity: 0, duration: 0.5, ease: 'power3.inOut', onComplete: function () { d.open = false; gsap.set(body, { clearProps: 'height,opacity' }); ScrollTrigger.refresh(); } });
-      } else {
-        d.open = true;
-        gsap.fromTo(body, { height: 0, opacity: 0 }, { height: 'auto', opacity: 1, duration: 0.7, ease: 'power3.out', onComplete: function () { gsap.set(body, { clearProps: 'height' }); ScrollTrigger.refresh(); } });
-      }
-    });
+  /* ---------- Bento mini visuals start when seen ---------- */
+  $$('.bcard').forEach(function (card) {
+    ScrollTrigger.create({ trigger: card, start: 'top 85%', once: true, onEnter: function () { card.classList.add('is-seen'); } });
   });
 
   /* ---------- Nav: scrolled state, hide on scroll down, active link ---------- */
@@ -375,15 +369,20 @@
     ScrollTrigger.create({ trigger: sec, start: 'top 50%', end: 'bottom 50%', onToggle: function (self) { a.classList.toggle('is-active', self.isActive); } });
   });
 
-  /* ---------- Desktop polish: cursor + magnetic buttons ---------- */
+  /* ---------- Desktop polish: cursor with labels + magnetic buttons ---------- */
   if (finePointer) {
-    var cursor = $('.cursor');
+    var cursor = $('.cursor'), label = $('.cursor__label');
     var cx = gsap.quickTo(cursor, 'x', { duration: 0.25, ease: 'power3' }), cy = gsap.quickTo(cursor, 'y', { duration: 0.25, ease: 'power3' });
     cursor.classList.add('is-hidden');
     window.addEventListener('pointermove', function (e) { cx(e.clientX); cy(e.clientY); cursor.classList.remove('is-hidden'); }, { passive: true });
     document.addEventListener('pointerleave', function () { cursor.classList.add('is-hidden'); });
+    var LABELS = [['.flow__item', 'Open'], ['.case', 'Reveal'], ['.trail', 'Move'], ['.bcard', 'Tap']];
     document.addEventListener('pointerover', function (e) {
-      cursor.classList.toggle('is-hover', !!e.target.closest('a, button, summary, label, .shot'));
+      var text = '';
+      for (var i = 0; i < LABELS.length; i++) { if (e.target.closest(LABELS[i][0])) { text = LABELS[i][1]; break; } }
+      label.textContent = text;
+      cursor.classList.toggle('is-label', !!text);
+      cursor.classList.toggle('is-hover', !text && !!e.target.closest('a, button, summary, label'));
     });
     $$('.magnetic').forEach(function (el) {
       var mx = gsap.quickTo(el, 'x', { duration: 0.6, ease: 'power3' }), my = gsap.quickTo(el, 'y', { duration: 0.6, ease: 'power3' });

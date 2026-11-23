@@ -1,6 +1,6 @@
 # Ahmed Osama — Personal Website
 
-Personal brand and consulting website for **Ahmed Osama Abdelatty**, Commercial Director in AI compute and data-centre infrastructure, based in Dubai.
+Sales website for **Ahmed Osama**, a Dubai-based consultant and dealmaker: AI data centres and GPU compute, e-commerce and websites that sell, gaming PCs and esports, business and financial strategy, brand expansion and enterprise deals.
 
 Built as a fast static site (plain HTML/CSS/JS), hosted free on **GitHub Pages**.
 
@@ -10,7 +10,9 @@ What powers it:
 - **WebGL stage** (`js/scene.js`): an endless grid floor, a turning monolith tower and a sunburst, all drawn in a shader. Scrolling flies the camera.
 - **GSAP + ScrollTrigger + SplitText:** loader, entry screen, blur-in titles, scroll chapters, masked heading reveals, count-up numbers
 - **Lenis:** smooth scrolling, synced to GSAP's ticker
+- **React Bits ideas rebuilt in plain JS** (`js/effects.js`): Rotating Text, Circular Text, Flowing Menu, Magic Bento, Pixel Transition, Image Trail, Click Spark, Scramble Text, Scroll Velocity
 - **Web Audio** (`js/sound.js`): an optional ambient soundtrack generated live (no audio files), only after the visitor chooses "Enter with sound"
+- **Contact form → email** via [FormSubmit](https://formsubmit.co) (no server needed)
 
 Everything respects `prefers-reduced-motion`.
 
@@ -20,11 +22,17 @@ Everything respects `prefers-reduced-motion`.
 
 | What | Where |
 |---|---|
-| YouTube / TikTok / Instagram / X / Facebook links | `js/config.js`: paste each link between the quotes |
-| Your photo | Save it as `assets/ahmed.jpg` (portrait, about 1000×1250 px). It replaces the gold "AO" automatically |
-| Your CV | Replace `assets/Ahmed-Osama-CV.pdf` (keep the same file name) |
-| Text, services, jobs | `index.html` |
+| Social links | `js/config.js`: paste each link between the quotes |
+| Your portrait | Save it as `assets/ahmed.jpg`, then set `portrait: true` in `js/config.js` |
+| Personal photos gallery | Save them as `assets/me/me-1.jpg`, `me-2.jpg` … then set `photos:` to how many there are |
+| Form delivery email | `formEndpoint` in `js/config.js` |
+| Text, services, projects | `index.html` |
 | Colours & fonts | Top of `css/style.css` (`:root` section) |
+
+After editing `js/config.js`, bump the `?v=` number on it in `index.html` so visitors get the update straight away.
+
+### Activating the contact form
+The first time someone sends the form, FormSubmit emails **ahmedosamakarmallah7@gmail.com** an "Activate Form" link. Click it once; every request after that arrives in that inbox. (If you later move to your own domain, FormSubmit may ask you to activate once more.)
 
 ---
 
