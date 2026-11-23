@@ -746,6 +746,28 @@ html:not(.js) .chapter__pin { position: relative; height: auto; display: flex; f
   .case__art { top: 8%; height: 32%; }
 }
 
+/* ---------- Brand access ---------- */
+.brands { background: var(--bg-2); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.brands__kicker { display: block; margin-bottom: 1.2rem; }
+.premium { display: grid; grid-template-columns: repeat(6, 1fr); border-top: 1px solid var(--line-2); border-left: 1px solid var(--line); margin-bottom: clamp(48px, 6vw, 80px); }
+.premium li { display: grid; place-items: center; text-align: center; min-height: 104px; padding: 1rem .6rem; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line);
+  font-size: clamp(1.05rem, 1.7vw, 1.5rem); line-height: 1.05; color: var(--ink); position: relative; overflow: hidden; isolation: isolate; transition: color .5s var(--ease); cursor: default; }
+.premium li::before { content: ""; position: absolute; inset: 0; z-index: -1; background: var(--ink); clip-path: circle(0% at 50% 50%); transition: clip-path .7s var(--ease); }
+.premium li:hover { color: var(--bg); }
+.premium li:hover::before { clip-path: circle(75% at 50% 50%); }
+.brands__tabs { display: flex; flex-wrap: wrap; gap: .6rem; margin-bottom: 1.6rem; }
+.brands__tabs button { padding: .8rem 1.3rem; border: 1px solid var(--line-2); font-size: .74rem; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; color: var(--ink-2); transition: all .4s var(--ease); }
+.brands__tabs button sup { font-family: var(--display); font-size: .8em; letter-spacing: .05em; margin-left: .3em; color: var(--dim); }
+.brands__tabs button:hover { border-color: var(--ink); color: var(--ink); }
+.brands__tabs button[aria-selected="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.brands__tabs button[aria-selected="true"] sup { color: rgba(20, 20, 19, .6); }
+.chips { display: flex; flex-wrap: wrap; gap: .55rem; }
+.chips li { padding: .6rem 1.05rem; border: 1px solid var(--line); font-size: .9rem; color: var(--ink-2); background: rgba(20, 20, 19, .5); transition: color .35s, border-color .35s, background .35s, transform .45s var(--ease); cursor: default; }
+.chips li:hover { color: var(--bg); background: var(--ink); border-color: var(--ink); transform: translateY(-3px); }
+.brands__cta { margin-top: 2.4rem; }
+@media (max-width: 1100px) { .premium { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 640px) { .premium { grid-template-columns: repeat(2, 1fr); } .premium li { min-height: 80px; } .chips li { font-size: .82rem; padding: .5rem .85rem; } .brands__cta .frame-btn { width: 100%; } }
+
 /* =========================================================
    Reduced motion
    ========================================================= */

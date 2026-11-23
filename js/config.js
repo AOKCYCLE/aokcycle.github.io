@@ -18,7 +18,7 @@ window.SITE_CONFIG = {
     linkedin:  "https://www.linkedin.com/in/ahmedabdelaatyy/",
     youtube:   "https://www.youtube.com/@AhmedOsamaKarm",
     tiktok:    "https://www.tiktok.com/@ahmedosamakarmallah",
-    instagram: "https://www.instagram.com/ahmedosamakarm/",
+    instagram: "https://www.instagram.com/kosharicode/", // KoshariCode
     kosharicode: "https://www.instagram.com/kosharicode/", // my AI agent
     facebook:  ""
   }

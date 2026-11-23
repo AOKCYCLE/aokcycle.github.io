@@ -34,8 +34,10 @@
   });
   $$('[data-social-href]').forEach(function (a) { var u = social[a.getAttribute('data-social-href')]; if (u) a.href = u; });
   $$('[data-socials]').forEach(function (wrap) {
+    var seen = {};
     ['linkedin', 'youtube', 'tiktok', 'instagram', 'kosharicode', 'facebook', 'whatsapp'].forEach(function (k) {
-      if (!social[k]) return;
+      if (!social[k] || seen[social[k]]) return;
+      seen[social[k]] = true;
       var a = document.createElement('a');
       a.href = social[k]; a.target = '_blank'; a.rel = 'noopener';
       a.setAttribute('aria-label', k === 'kosharicode' ? 'KoshariCode, my AI agent' : k.charAt(0).toUpperCase() + k.slice(1));
@@ -158,6 +160,30 @@
       } else {
         d.open = true;
         gsap.fromTo(bodyEl, { height: 0, opacity: 0 }, { height: 'auto', opacity: 1, duration: 0.6, ease: 'power3.out', onComplete: function () { gsap.set(bodyEl, { clearProps: 'height' }); if (window.ScrollTrigger) ScrollTrigger.refresh(); } });
+      }
+    });
+  });
+
+  /* ---------- Brand access tabs ---------- */
+  var tabs = $$('.brands__tabs [role="tab"]');
+  tabs.forEach(function (tab) {
+    tab.addEventListener('click', function () {
+      tabs.forEach(function (t) { t.setAttribute('aria-selected', String(t === tab)); });
+      $$('.brands__panel').forEach(function (panel) {
+        var on = panel.getAttribute('data-panel') === tab.getAttribute('data-tab');
+        panel.hidden = !on;
+        if (on && window.gsap && !reduce) {
+          gsap.fromTo($$('.chips li', panel), { y: 18, opacity: 0, scale: 0.9 }, { y: 0, opacity: 1, scale: 1, duration: 0.5, stagger: { each: 0.012, from: 'random' }, ease: 'power3.out' });
+        }
+      });
+      if (window.Sound) Sound.tick();
+    });
+    tab.addEventListener('keydown', function (e) {
+      var i = tabs.indexOf(tab);
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        e.preventDefault();
+        var next = tabs[(i + (e.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length];
+        next.focus(); next.click();
       }
     });
   });
@@ -343,6 +369,12 @@
     gsap.fromTo(fig, { clipPath: 'inset(100% 0% 0% 0%)' }, { clipPath: 'inset(0% 0% 0% 0%)', duration: 1.5, ease: 'expo.out', delay: (i % 3) * 0.1, scrollTrigger: { trigger: fig, start: 'top 92%', once: true } });
     gsap.fromTo($('img', fig), { yPercent: -6, scale: 1.12 }, { yPercent: 6, ease: 'none', scrollTrigger: { trigger: fig, start: 'top bottom', end: 'bottom top', scrub: true } });
   });
+
+  // premium brand wall and chips cascade in
+  if ($('.premium')) {
+    gsap.from('.premium li', { y: 40, opacity: 0, duration: 1, stagger: { each: 0.05, from: 'random' }, ease: 'power3.out', scrollTrigger: { trigger: '.premium', start: 'top 88%', once: true } });
+    gsap.from('.brands__panel:not([hidden]) .chips li', { y: 18, opacity: 0, duration: 0.6, stagger: { each: 0.01, from: 'random' }, ease: 'power3.out', scrollTrigger: { trigger: '.brands__panel', start: 'top 90%', once: true } });
+  }
 
   // service lines slide in from alternating sides
   $$('.flow__item').forEach(function (it, i) {
