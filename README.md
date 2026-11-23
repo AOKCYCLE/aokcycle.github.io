@@ -23,8 +23,8 @@ Everything respects `prefers-reduced-motion`.
 | What | Where |
 |---|---|
 | Social links | `js/config.js`: paste each link between the quotes |
-| Your portrait | Save it as `assets/ahmed.jpg`, then set `portrait: true` in `js/config.js` |
-| Personal photos gallery | Save them as `assets/me/me-1.jpg`, `me-2.jpg` … then set `photos:` to how many there are |
+| Your photos | Replace the files in `assets/me/` (keep the same names), graded and cropped for the site |
+| Featured YouTube video | In `index.html`, search for `rE_Zyc-e_kE` and replace it with the new video ID (thumbnail + player update together) |
 | Form delivery email | `formEndpoint` in `js/config.js` |
 | Text, services, projects | `index.html` |
 | Colours & fonts | Top of `css/style.css` (`:root` section) |

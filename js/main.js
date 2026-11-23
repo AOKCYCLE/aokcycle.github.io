@@ -19,7 +19,7 @@
   /* ---------- Contact details & social links ---------- */
   var ICONS = {
     linkedin: 'fa-brands fa-linkedin-in', youtube: 'fa-brands fa-youtube', tiktok: 'fa-brands fa-tiktok',
-    instagram: 'fa-brands fa-instagram', facebook: 'fa-brands fa-facebook-f', whatsapp: 'fa-brands fa-whatsapp'
+    instagram: 'fa-brands fa-instagram', kosharicode: 'fa-solid fa-robot', facebook: 'fa-brands fa-facebook-f', whatsapp: 'fa-brands fa-whatsapp'
   };
   var social = Object.assign({}, CFG.social || {});
   if (CFG.whatsapp) social.whatsapp = 'https://wa.me/' + CFG.whatsapp;
@@ -32,17 +32,17 @@
     if (url) { el.href = url; el.target = '_blank'; el.rel = 'noopener'; }
     else el.remove();
   });
+  $$('[data-social-href]').forEach(function (a) { var u = social[a.getAttribute('data-social-href')]; if (u) a.href = u; });
   $$('[data-socials]').forEach(function (wrap) {
-    ['linkedin', 'youtube', 'tiktok', 'instagram', 'facebook', 'whatsapp'].forEach(function (k) {
+    ['linkedin', 'youtube', 'tiktok', 'instagram', 'kosharicode', 'facebook', 'whatsapp'].forEach(function (k) {
       if (!social[k]) return;
       var a = document.createElement('a');
       a.href = social[k]; a.target = '_blank'; a.rel = 'noopener';
-      a.setAttribute('aria-label', k.charAt(0).toUpperCase() + k.slice(1));
+      a.setAttribute('aria-label', k === 'kosharicode' ? 'KoshariCode, my AI agent' : k.charAt(0).toUpperCase() + k.slice(1));
       a.innerHTML = '<i class="' + ICONS[k] + '"></i>';
       wrap.appendChild(a);
     });
   });
-  if (CFG.portrait) $$('[data-portrait]').forEach(function (im) { im.src = 'assets/ahmed.jpg'; im.hidden = false; });
   var yearEl = $('#year'); if (yearEl) yearEl.textContent = new Date().getFullYear();
 
   /* ---------- Toast & copy ---------- */
@@ -176,7 +176,7 @@
   if (!hasGsap) {
     document.documentElement.classList.remove('js');
     window.__siteReady = true;
-    if (window.Effects) Effects.init({ onBook: onBook, photos: CFG.photos });
+    if (window.Effects) Effects.init({ onBook: onBook });
     return;
   }
   window.__siteReady = true;
@@ -210,7 +210,7 @@
   /* ---------- WebGL stage + globe + effects ---------- */
   var stage = window.initStage ? window.initStage($('#stage'), { static: reduce }) : null;
   if (window.initGlobe) window.initGlobe($('#globe'), { static: reduce });
-  if (window.Effects) Effects.init({ onBook: onBook, photos: CFG.photos });
+  if (window.Effects) Effects.init({ onBook: onBook });
 
   /* ---------- Hero intro ---------- */
   var heroName = $('.hero__name');
@@ -329,6 +329,21 @@
   });
   gsap.fromTo('.portrait', { clipPath: 'inset(100% 0% 0% 0%)' }, { clipPath: 'inset(0% 0% 0% 0%)', duration: 1.8, ease: 'expo.out', scrollTrigger: { trigger: '.portrait', start: 'top 85%', once: true } });
 
+  // "From pyramids to processors" draws itself as you scroll
+  var jl = $('.journey-line');
+  if (jl) {
+    gsap.set($$('.jl', jl), { strokeDasharray: 1, strokeDashoffset: 1 });
+    gsap.timeline({ scrollTrigger: { trigger: jl, start: 'top 85%', end: 'bottom 45%', scrub: 0.8 } })
+      .to($$('.jl', jl), { strokeDashoffset: 0, stagger: 0.12, ease: 'none' })
+      .from('.jl-labels text', { opacity: 0, y: 8, stagger: 0.2 }, 0.6);
+  }
+
+  // personal photos: curtain reveal + slow drift
+  $$('.me__shot').forEach(function (fig, i) {
+    gsap.fromTo(fig, { clipPath: 'inset(100% 0% 0% 0%)' }, { clipPath: 'inset(0% 0% 0% 0%)', duration: 1.5, ease: 'expo.out', delay: (i % 3) * 0.1, scrollTrigger: { trigger: fig, start: 'top 92%', once: true } });
+    gsap.fromTo($('img', fig), { yPercent: -6, scale: 1.12 }, { yPercent: 6, ease: 'none', scrollTrigger: { trigger: fig, start: 'top bottom', end: 'bottom top', scrub: true } });
+  });
+
   // service lines slide in from alternating sides
   $$('.flow__item').forEach(function (it, i) {
     gsap.from(it, { xPercent: i % 2 ? 8 : -8, opacity: 0, duration: 1.2, ease: 'expo.out', scrollTrigger: { trigger: it, start: 'top 92%', once: true } });
@@ -376,7 +391,7 @@
     cursor.classList.add('is-hidden');
     window.addEventListener('pointermove', function (e) { cx(e.clientX); cy(e.clientY); cursor.classList.remove('is-hidden'); }, { passive: true });
     document.addEventListener('pointerleave', function () { cursor.classList.add('is-hidden'); });
-    var LABELS = [['.flow__item', 'Open'], ['.case', 'Reveal'], ['.trail', 'Move'], ['.bcard', 'Tap']];
+    var LABELS = [['.flow__item', 'Open'], ['.case', 'Reveal'], ['.trail', 'Move'], ['.bcard', 'Tap'], ['.feature', 'Play'], ['.short', 'Play'], ['.me__shot', 'View']];
     document.addEventListener('pointerover', function (e) {
       var text = '';
       for (var i = 0; i < LABELS.length; i++) { if (e.target.closest(LABELS[i][0])) { text = LABELS[i][1]; break; } }
