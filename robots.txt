@@ -14,7 +14,7 @@ Allow: /
 Disallow: /tools/
 
 # AI-training and bulk data-scraping crawlers are not permitted.
-# See https://aokcycle.github.io/legal.html
+# See https://ahmedosamakarm.com/legal.html
 User-agent: GPTBot
 User-agent: CCBot
 User-agent: ClaudeBot
@@ -29,4 +29,4 @@ User-agent: ImagesiftBot
 User-agent: img2dataset
 Disallow: /
 
-Sitemap: https://aokcycle.github.io/sitemap.xml
+Sitemap: https://ahmedosamakarm.com/sitemap.xml
