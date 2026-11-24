@@ -2038,6 +2038,43 @@ h2, h3 { line-height: 1.1; }
   .agent__ctas .frame-btn { flex: 1 1 0; padding: .8rem .6rem; font-size: .62rem; letter-spacing: .12em; }
 }
 
+
+/* ---------- Polish: logos you can see, smooth case reveal, The Builder framing ---------- */
+.premium li { min-height: 62px; }
+.premium .bl__link { padding: .7rem .5rem; }
+.premium .bl__logo { width: 70%; height: 64%; }
+.chips .bl__logo { width: 88%; height: 72%; }
+.bl__logo--word text { font-family: var(--display); font-size: 15px; letter-spacing: .5px; fill: currentColor; fill-opacity: 0; stroke: currentColor; stroke-width: .55; stroke-dasharray: 220; stroke-dashoffset: 220; }
+.bl.is-logo .bl__logo--word text { animation: wordDraw 1s cubic-bezier(.65, 0, .35, 1) forwards, wordFill .6s .75s ease forwards; }
+@keyframes wordDraw { to { stroke-dashoffset: 0; } }
+@keyframes wordFill { to { fill-opacity: 1; } }
+
+/* case cards: the result slides up smoothly (no pixel squares) */
+.case__pixels { display: none; }
+.case__back { visibility: visible; clip-path: inset(100% 0 0 0); transition: clip-path .55s var(--ease); }
+.case.is-flipped .case__back { clip-path: inset(0 0 0 0); }
+.case__back > * { opacity: 0; transform: translateY(10px); transition: opacity .4s ease, transform .5s var(--ease); }
+.case.is-flipped .case__back > * { opacity: 1; transform: none; }
+.case.is-flipped .case__back > :nth-child(1) { transition-delay: .12s; }
+.case.is-flipped .case__back > :nth-child(2) { transition-delay: .18s; }
+.case.is-flipped .case__back > :nth-child(3) { transition-delay: .24s; }
+.case.is-flipped .case__back > :nth-child(4) { transition-delay: .3s; }
+.case__front { transition: opacity .5s ease; }
+.case.is-flipped .case__front { opacity: .15; }
+
+/* case card captions stay on one line, clear of the wordmark */
+.case__cap .label { font-size: .56rem; letter-spacing: .12em; white-space: nowrap; }
+.case__brand { top: 44%; }
+
+/* The Builder: keep Ahmed in frame (he sits on the left of the photo) */
+.me__shot img[src*="pc-rog"] { object-position: 0% 35%; }
+
+/* statements: steady, centred, no layout shift */
+.chapter--band .chapter__line { will-change: opacity, transform; }
+@media (prefers-reduced-motion: reduce) {
+  .case__back, .case__back > *, .case__front { transition: none; }
+}
+
 /* =========================================================
    Reduced motion
    ========================================================= */

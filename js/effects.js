@@ -171,12 +171,18 @@ window.Effects = (function () {
       var io = new IntersectionObserver(function (entries) {
         entries.forEach(function (en) {
           var it = en.target;
+          if (lastPointer !== 'touch') return;
           if (en.isIntersecting && !it.classList.contains('is-on')) it._show(en.boundingClientRect.top > 0 ? 'bottom' : 'top');
           else if (!en.isIntersecting && it.classList.contains('is-on')) it._hide(en.boundingClientRect.top > window.innerHeight / 2 ? 'bottom' : 'top');
         });
       }, { rootMargin: '-45% 0px -45% 0px' });
       $$('.flow__item').forEach(function (it) { io.observe(it); });
     }
+    // as soon as a real mouse moves, close any strip that opened on its own
+    document.addEventListener('pointermove', function (e) {
+      if (!isMouse(e)) return;
+      $$('.flow__item.is-on').forEach(function (it) { if (!it.matches(':hover')) it._hide('bottom'); });
+    }, { passive: true });
 
   }
 
@@ -322,31 +328,13 @@ window.Effects = (function () {
 
   /* ---------- Pixel Transition cards ---------- */
   function pixelCards() {
-    var N = 9;
     $$('.case').forEach(function (card) {
-      var grid = document.createElement('div');
-      grid.className = 'case__pixels'; grid.setAttribute('aria-hidden', 'true');
-      var cells = [];
-      for (var i = 0; i < N * N; i++) {
-        var c = document.createElement('i');
-        c.style.width = (100 / N) + '%'; c.style.height = (100 / N) + '%';
-        c.style.left = (i % N) * (100 / N) + '%'; c.style.top = Math.floor(i / N) * (100 / N) + '%';
-        grid.appendChild(c); cells.push(c);
-      }
-      card.appendChild(grid);
-      var active = false, tl = null;
+      var active = false;
       function flip(on) {
         if (on === active) return;
         active = on;
-        if (reduce || !G) { card.classList.toggle('is-flipped', on); return; }
-        if (tl) tl.kill();
-        G.set(cells, { opacity: 0 });
-        tl = G.timeline()
-          .to(cells, { opacity: 1, duration: 0.01, stagger: { each: 0.0016, from: 'random' } })
-          .add(function () { card.classList.toggle('is-flipped', on); })
-          .to(cells, { opacity: 0, duration: 0.01, stagger: { each: 0.0016, from: 'random' } }, '+=0.02')
-          .add(function () { G.set(cells, { opacity: 0 }); });
-        if (window.Sound) Sound.tick();
+        card.classList.toggle('is-flipped', on);
+        if (on && window.Sound) Sound.tick();
       }
       var id = card.getAttribute('data-case');
       card.setAttribute('role', 'button');
@@ -493,8 +481,8 @@ window.Effects = (function () {
       if (d) {
         art = '<svg class="bl__logo" viewBox="0 0 24 24" aria-hidden="true"><path pathLength="1" d="' + d + '"/></svg>';
       } else {
-        var ini = name.replace(/[^A-Za-z0-9 .-]/g, '').split(/[\s.-]+/).filter(Boolean).map(function (w) { return w[0]; }).join('').slice(0, 2).toUpperCase();
-        art = '<svg class="bl__logo bl__logo--mono" viewBox="0 0 24 24" aria-hidden="true"><circle pathLength="1" cx="12" cy="12" r="10.6"/><circle pathLength="1" cx="12" cy="12" r="8.6"/><text x="12" y="15.3" text-anchor="middle">' + ini + '</text></svg>';
+        var word = name.toUpperCase().replace(/&/g, '&amp;'), w = Math.max(60, word.length * 11);
+        art = '<svg class="bl__logo bl__logo--word" viewBox="0 0 ' + w + ' 22" aria-hidden="true"><text x="' + (w / 2) + '" y="16" text-anchor="middle">' + word + '</text></svg>';
       }
       var url = S[name];
       var inner = '<span class="bl__name">' + li.innerHTML + '</span>' + art + (url ? '<i class="bl__go" aria-hidden="true">\u2197</i>' : '');
@@ -505,7 +493,7 @@ window.Effects = (function () {
       var svg = li.querySelector('.bl__logo'), fitted = false;
       function fit() {
         // crop the viewBox tight around the logo so wide wordmarks fill the tile, then keep strokes ~1px
-        if (!fitted && !svg.classList.contains('bl__logo--mono')) {
+        if (!fitted && svg.querySelector('path')) {
           try { var b = svg.querySelector('path').getBBox(); if (b.width && b.height) svg.setAttribute('viewBox', [b.x - 0.4, b.y - 0.4, b.width + 0.8, b.height + 0.8].join(' ')); } catch (e) { /* not rendered yet */ }
           fitted = true;
         }

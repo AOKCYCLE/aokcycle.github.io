@@ -538,18 +538,18 @@
   if (lines.length) {
     gsap.set(lines, { opacity: 0 });
     var showLine = function (i, first) {
-      gsap.fromTo(lines[i], { opacity: 0, filter: 'blur(14px)', letterSpacing: '0.2em', y: 18 },
-        { opacity: 1, filter: 'blur(0px)', letterSpacing: '0.015em', y: 0, duration: 1.1, ease: 'power3.out', delay: first ? 0 : 0.45, clearProps: 'filter' });
+      gsap.fromTo(lines[i], { opacity: 0, y: 14 },
+        { opacity: 1, y: 0, duration: 0.9, ease: 'power2.out', delay: first ? 0 : 0.5 });
     };
     showLine(0, true);
     var nextLine = function () {
-      gsap.to(lines[lineIdx], { opacity: 0, filter: 'blur(10px)', y: -18, duration: 0.6, ease: 'power2.in' });
+      gsap.to(lines[lineIdx], { opacity: 0, y: -14, duration: 0.5, ease: 'power2.in' });
       lineIdx = (lineIdx + 1) % lines.length;
       showLine(lineIdx);
     };
     ScrollTrigger.create({
       trigger: '.chapter', start: 'top 90%', end: 'bottom 10%',
-      onToggle: function (self) { clearInterval(lineTimer); if (self.isActive) lineTimer = setInterval(nextLine, 3200); }
+      onToggle: function (self) { clearInterval(lineTimer); if (self.isActive) lineTimer = setInterval(nextLine, 3800); }
     });
   }
 
@@ -585,7 +585,8 @@
   // personal photos: curtain reveal + slow drift
   $$('.me__shot').forEach(function (fig, i) {
     gsap.fromTo(fig, { clipPath: 'inset(100% 0% 0% 0%)' }, { clipPath: 'inset(0% 0% 0% 0%)', duration: 1.5, ease: 'expo.out', delay: (i % 3) * 0.1, scrollTrigger: { trigger: fig, start: 'top 92%', once: true } });
-    gsap.fromTo($('img', fig), { scale: 1.1, transformOrigin: '50% 0%' }, { scale: 1, ease: 'none', scrollTrigger: { trigger: fig, start: 'top bottom', end: 'bottom top', scrub: true } });
+    var im = $('img', fig), left = /pc-rog/.test(im.getAttribute('src'));
+    gsap.fromTo(im, { scale: 1.04, transformOrigin: left ? '0% 30%' : '50% 20%' }, { scale: 1, ease: 'none', scrollTrigger: { trigger: fig, start: 'top bottom', end: 'bottom top', scrub: true } });
   });
 
   // premium brand wall and chips cascade in
@@ -677,7 +678,7 @@
     function modeFor(t) {
       if (!t || !t.closest) return ['default'];
       if (t.closest('dialog, input, textarea, select')) return ['hidden'];
-      if (t.closest('.orbit-badge, .eye-btn, .float-cta')) return ['dot'];
+      if (t.closest('.orbit-badge, .eye-btn, .float-cta, .bl, .case')) return ['dot'];
       if (t.closest('.feature, .short')) return ['play', ICON_PLAY, 'Play'];
       var a = t.closest('a[href]');
       if (a) {
